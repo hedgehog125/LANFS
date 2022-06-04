@@ -1,0 +1,14 @@
+{
+  "name": "lanfs",
+  "version": "1.0.0",
+  "description": "LAN File Sharer. It lets you easily share files over your LAN",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Nico Clack (Hedgehog125)",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "express": "^4.18.1"
+  }
+}
