@@ -1,3 +1,7 @@
+# Specific to this program
+server/sharedFiles
+
+
 # From sveltekit gitignore
 .DS_Store
 package-lock.json
