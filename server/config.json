@@ -1,0 +1,27 @@
+{
+    "timings": {
+        "delete": {
+            "unusedRoom": 30,
+            "newFile": 180,
+            "downloadedFile": 10
+        },
+        "clientRelated": {
+            "cleaningUp": 0.5,
+            "maxRoomsReached": 10
+        }
+    },
+    "limits": {
+        "max": {
+            "rooms": 128,
+            "fileSize": -1,
+            "totalFileSize": 10,
+            "totalFileCount": 1000
+        }
+    },
+
+    "client": {
+        "timings": {
+            "refreshDelay": 1
+        }
+    }
+}
