@@ -1,11 +1,15 @@
 const PORT = process.env.PORT?? 7000;
 
+const GB_TO_BYTES = Math.pow(1024, 3);
 const fs = require("fs/promises");
+const fileUpload = require("express-fileupload");
+const mime = require("mime-types");
+
 const path = require("path");
 path.sandboxPath = path => {
     let index = path.indexOf(__dirname);
     if (index != 0) { // The base path must appear at the start of the path
-        throw new Error(`Attempted to access a file or folder outside of the local path.\nPath: ${JSON.stringify(path)}`);
+        throw new Error(`Attempted to access a file or folder outside of the local path.\nPath:\n${path}`);
     }
     return path;
 };
@@ -17,6 +21,7 @@ const app = express();
 
 
 const readline = require("readline");
+const { type } = require("os");
 const cli = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -39,6 +44,8 @@ testing: {
 const state = {
     rooms: {},
     roomCount: 0,
+    totalSize: 0,
+
     cleaningUp: false
 };
 let config; // It'll be loaded from the disk
@@ -78,7 +85,7 @@ const cleanUp = async _ => {
 const startServer = _ => {
     app.use(express.static("../static/build/"));
 
-    const getOrCreateRoom = (roomName, create=true) => {
+    const getOrCreateRoom = async (roomName, create=true) => {
         let room = state.rooms[roomName];
         if (room == null) {
             if (! create) return null;
@@ -103,18 +110,32 @@ const startServer = _ => {
 
             room = {
                 id: roomID,
-                timeLeft: 0, // Reset in a second
+                timeLeft: 0, // It'll be set in a second
                 files: []
             };
             state.rooms[roomName] = room;
+
+            // Make the folder if it doesn't exist. Or throw an error if a file is taking that name
+            const roomFolder = path.accessLocal(`sharedFiles/${roomID}/`);
+            let folderInfo;
+            try {
+                folderInfo = await fs.stat(roomFolder);
+            }
+            catch (error) {
+                await fs.mkdir(roomFolder);
+            }
+
+            if (folderInfo != null && (! folderInfo.isDirectory())) { // folderInfo being null means it was just made
+                throw new Error(`The folder at path:\n${roomFolder}\nin sharedFiles has been taken by a file.`);
+            }
         }
 
         room.timeLeft = config.timings.delete.unusedRoom;
         return room;
     };
 
-    app.get("/room/get/:roomName", (req, res) => {
-        const room = getOrCreateRoom(req.params.roomName);
+    app.get("/room/get/:roomName", async (req, res) => {
+        const room = await getOrCreateRoom(req.params.roomName);
         if (room == null) { // Reached room limit
             res.setHeader("Retry-After", config.timings.clientRelated.maxRoomsReached);
             res.status(503).send("RoomLimitReached");
@@ -126,7 +147,7 @@ const startServer = _ => {
         });
     });
     app.get("/room/get/:roomName/:fileID", async (req, res) => {
-        const room = getOrCreateRoom(req.params.roomName, false); // Don't create a new room if none exists
+        const room = await getOrCreateRoom(req.params.roomName, false); // Don't create a new room if none exists
         const fileInfo = room?.files?.[parseInt(req.params.fileID)];
 
         if (room == null || fileInfo == null) { // The room doesn't exist or the file doesn't
@@ -138,14 +159,58 @@ const startServer = _ => {
         res.sendFile(filePath);
     });
 
-    app.post("/room/upload/:roomName/", (req, res) => {
+    {
+        let max = config.limits.max;
+        app.use(fileUpload({
+            limits: {
+                fileSize: max.fileSize == -1? max.totalFileSize : max.fileSize
+            }
+        }));
+    }
+    app.post("/room/upload/:roomName/", async (req, res) => {
         if (state.cleaningUp) {
             res.setHeader("Retry-After", config.timings.clientRelated.cleaningUp);
             res.status(503).send("CleaningUp");
             return;
         }
 
+        const room = await getOrCreateRoom(req.params.roomName);
+        if (room == null) { // Reached room limit
+            res.setHeader("Retry-After", config.timings.clientRelated.maxRoomsReached);
+            res.status(503).send("RoomLimitReached");
+            return;
+        }
 
+        let file = req.files?.upload;
+        if (file == null) {
+            res.status(400).send("MissingFile");
+            return;
+        }
+        
+        if (state.totalSize + file.size > config.limits.max.totalFileSize) {
+            res.status(503).send("TooManyFilesOnServer");
+            return;
+        }
+
+        state.totalSize += file.size;
+
+        let id = room.files.indexOf(null);
+        if (id == -1) id = room.files.length;
+
+        let ext = "." + mime.extension(file.mimetype);
+        if (ext == ".") ext = "";
+        const storedName = `${id}${ext}`;
+        room.files[id] = {
+            originalName: file.name,
+            storedName: storedName,
+            timeLeft: config.timings.delete.newFile,
+            ready: false,
+            keep: false
+        };
+
+        res.send("Uploading");
+
+        file.mv(path.accessLocal(`sharedFiles/${room.id}/${storedName}`));
     });
 
     app.get("/brew/coffee", (req, res) => {
@@ -163,6 +228,11 @@ const startServer = _ => {
 
 const start = async _ => {
     config = JSON.parse(await fs.readFile(path.accessLocal("config.json")));
+    {
+        let max = config.limits.max;
+        if (max.fileSize != -1) max.fileSize *= GB_TO_BYTES;
+        max.totalFileSize *= GB_TO_BYTES;
+    }
 
     cleanUp();
     startServer();
