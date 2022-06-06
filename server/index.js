@@ -2,6 +2,7 @@
 TODO
 
 Main loop that runs once a second and adjusts times. Then deletes when times run out
+More security stuff involving timings I guess? Mainly around async stuff and assuming data is still correct. Maybe delay processing new rooms when the folder is being created for a new room or something
 */
 
 const PORT = process.env.PORT?? 7000;
@@ -41,6 +42,22 @@ const state = {
 	cleaningUp: false
 };
 let config; // It'll be loaded from the disk
+
+const deleteUpload = (room, fileID) => {
+	const fileInfo = room.files[fileID];
+
+	let filePath = path.accessLocal(`sharedFiles/${room.id}/${fileInfo.storedName}`);
+	room.fileCount--;
+	if (room.fileCount == 0) {
+		room.files = [];
+		room.timeLeft = config.timings.delete.unusedRoom;
+	}
+	else delete room.files[fileID];
+
+	await fs.rm(filePath);
+};
+
+
 
 const loadConfig = async _ => {
 	config = JSON.parse(await fs.readFile(path.accessLocal("config.json")));
@@ -110,9 +127,11 @@ const startServer = _ => {
 			room = {
 				id: roomID,
 				timeLeft: 0, // It'll be set in a second
-				files: []
+				files: [],
+				fileCount: 0
 			};
 			state.rooms[roomName] = room;
+			state.roomCount++;
 
 			// Make the folder if it doesn't exist. Or throw an error if a file is taking that name
 			const roomFolder = path.accessLocal(`sharedFiles/${roomID}/`);
@@ -164,6 +183,7 @@ const startServer = _ => {
 		}
 
 		let filePath = path.accessLocal(`sharedFiles/${room.id}/${fileInfo.storedName}`);
+		fileInfo.timeLeft = config.timings.delete.downloadedFile;
 		res.sendFile(filePath);
 	});
 
@@ -212,9 +232,9 @@ const startServer = _ => {
 			originalName: file.name,
 			storedName: storedName,
 			timeLeft: config.timings.delete.newFile,
-			ready: false,
-			keep: false
+			ready: false
 		};
+		room.fileCount++;
 
 		res.send(id.toString());
 		await file.mv(path.accessLocal(`sharedFiles/${room.id}/${storedName}`));
@@ -222,7 +242,7 @@ const startServer = _ => {
 		room.files[id].ready = true;
 	});
 
-	app.post("room/delete/:roomName/:fileID", async (req, res) => { // Destructive action so it doesn't use GET
+	app.post("room/delete/:roomName/:fileID", async (req, res) => { // Destructive action, so it doesn't use GET
 		const room = await getOrCreateRoom(req.params.roomName, false); // Don't create a new room if none exists
 		const fileInfo = room?.files?.[parseInt(req.params.fileID)];
 
@@ -236,8 +256,26 @@ const startServer = _ => {
 			return;
 		}
 
-		//await fs.rm(path.accessLocal()); TODO
 		res.send("Deleted");
+		await deleteUpload(room, fileID);
+	});
+
+	app.post("room/extend/:roomName/:fileID", async (req, res) => { // Does something, so no GET
+		const room = await getOrCreateRoom(req.params.roomName, false); // Don't create a new room if none exists
+		const fileInfo = room?.files?.[parseInt(req.params.fileID)];
+
+		if (room == null || fileInfo == null) { // The room doesn't exist or the file doesn't
+			res.status(404).send("MissingRoomOrFile");
+			return;
+		}
+		if (! fileInfo.ready) {
+			res.setHeader("Retry-After", config.timings.clientRelated.fileNotReady);
+			res.status(503).send("StillProcessing");
+			return;
+		}
+
+		fileInfo.timeLeft = config.timings.delete.newFile;
+		res.send("Extended");
 	});
 
 	app.get("/brew/coffee", (req, res) => {
@@ -254,10 +292,34 @@ const startServer = _ => {
 };
 
 const main = _ => {
-	for (let id in state.rooms) {
-		let room = state.rooms[id];
+	for (let roomName in state.rooms) {
+		let room = state.rooms[roomName];
 
-		//if (room.files)
+		for (let fileID in room.files) {
+			const file = room.files[fileID];
+			if (file == null) continue;
+
+			if (file.timeLeft == 0) {
+				deleteUpload(room, file);
+			}
+			else {
+				file.timeLeft--;
+			}
+		}
+
+		if (room.fileCount == 0) { // The files will eventually be deleted, which means the room will close after this countdown
+			if (room.timeLeft == 0) {
+				fs.rm(path.accessLocal(`sharedFiles/${room.id}`), {
+					recursive: true
+				});
+
+				delete state.rooms[roomName];
+				state.roomCount--;
+			}
+			else {
+				room.timeLeft--;
+			}
+		}
 	}
 };
 
