@@ -5,12 +5,13 @@ Main loop that runs once a second and adjusts times. Then deletes when times run
 More security stuff involving timings I guess? Mainly around async stuff and assuming data is still correct. Maybe delay processing new rooms when the folder is being created for a new room or something
 */
 
-const PORT = process.env.PORT?? 7000;
 
 const GB_TO_BYTES = Math.pow(1024, 3);
 const fs = require("fs/promises");
 const fileUpload = require("express-fileupload");
 const mime = require("mime-types");
+const ipPackage = require("ip");
+const IP = ipPackage.address();
 
 const path = require("path");
 path.sandboxPath = path => {
@@ -42,8 +43,9 @@ const state = {
 	cleaningUp: false
 };
 let config; // It'll be loaded from the disk
+let PORT; // Loaded as part of config or from the environment variable
 
-const deleteUpload = (room, fileID) => {
+const deleteUpload = async (room, fileID) => {
 	const fileInfo = room.files[fileID];
 
 	let filePath = path.accessLocal(`sharedFiles/${room.id}/${fileInfo.storedName}`);
@@ -64,6 +66,8 @@ const loadConfig = async _ => {
 	let max = config.limits.max;
 	if (max.fileSize != -1) max.fileSize *= GB_TO_BYTES;
 	max.totalFileSize *= GB_TO_BYTES;
+
+	PORT = process.env.PORT?? config.port;
 };
 
 const cleanUp = async _ => {
@@ -243,8 +247,9 @@ const startServer = _ => {
 	});
 
 	app.post("room/delete/:roomName/:fileID", async (req, res) => { // Destructive action, so it doesn't use GET
+		let fileID = parseInt(req.params.fileID);
 		const room = await getOrCreateRoom(req.params.roomName, false); // Don't create a new room if none exists
-		const fileInfo = room?.files?.[parseInt(req.params.fileID)];
+		const fileInfo = room?.files?.[fileID];
 
 		if (room == null || fileInfo == null) { // The room doesn't exist or the file doesn't
 			res.status(404).send("MissingRoomOrFile");
@@ -287,7 +292,12 @@ const startServer = _ => {
 
 
 	app.listen(PORT, _ => {
-		console.log(`Running on port ${PORT}.`);
+		console.log(
+			`Running on port ${PORT} using IP ${IP}.
+	
+For access on the same machine: http://localhost:${PORT}/
+And for other devices on your LAN: http://${IP}:${PORT}/
+			`);
 	});
 };
 
@@ -300,7 +310,7 @@ const main = _ => {
 			if (file == null) continue;
 
 			if (file.timeLeft == 0) {
-				deleteUpload(room, file);
+				deleteUpload(room, fileID);
 			}
 			else {
 				file.timeLeft--;
@@ -325,6 +335,7 @@ const main = _ => {
 
 const start = async _ => {
 	await loadConfig();
+
 	cleanUp();
 	startServer();
 	setInterval(main, 1000);
