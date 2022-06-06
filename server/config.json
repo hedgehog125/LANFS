@@ -7,7 +7,8 @@
         },
         "clientRelated": {
             "cleaningUp": 0.5,
-            "maxRoomsReached": 10
+            "maxRoomsReached": 10,
+            "fileNotReady": 1
         }
     },
     "limits": {
