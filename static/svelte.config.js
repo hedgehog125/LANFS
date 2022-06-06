@@ -1,9 +1,10 @@
 import adapter from "@sveltejs/adapter-static";
 
-const dev = process.env.NODE_ENV == "development";
 const repoName = "";
-const baseURL = dev? "" : `/${repoName}`;
 const buildDir = "build";
+
+const dev = process.env.NODE_ENV == "development";
+const baseURL = dev || repoName == ""? "" : `/${repoName}`;
 
 
 /** @type {import("@sveltejs/kit").Config} */
