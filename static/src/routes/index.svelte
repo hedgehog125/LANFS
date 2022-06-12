@@ -1,8 +1,6 @@
-<main>
-    Testing
-</main>
-
 <script>
+    import RoomSelectorBox from "$lib/RoomSelectorBox.svelte";
+
     /*
     upload = new FormData();
     upload.set("upload", new File([new Blob(["I found among us"])], "among", {
@@ -15,3 +13,7 @@
     }).then(res => {a = res});
    */
 </script>
+
+<main>
+    <RoomSelectorBox></RoomSelectorBox>
+</main>
