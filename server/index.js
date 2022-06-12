@@ -1,8 +1,8 @@
 /*
 TODO
 
-Main loop that runs once a second and adjusts times. Then deletes when times run out
 More security stuff involving timings I guess? Mainly around async stuff and assuming data is still correct. Maybe delay processing new rooms when the folder is being created for a new room or something
+Could have an extra second where things are half deleted? Requests behave as if it's deleted but new things still work around it?
 */
 
 
@@ -109,24 +109,21 @@ const startServer = _ => {
 		let room = state.rooms[roomName];
 		if (room == null) {
 			if (! create) return null;
+			if (state.roomCount == config.limits.max.rooms) return null;
 
-			const max = config.limits.max.rooms;
 			let roomID = 0;
-			while (roomID < max) {
-				let usingID = false;
-				for (let i in state.rooms) {
-					if (state.rooms[i].id == roomID) {
-						usingID = true;
-						break;
+			{
+				let idUsed;
+				do {
+					idUsed = false;
+					for (let i in state.rooms) {
+						if (state.rooms[i].id == roomID) {
+							idUsed = true;
+							break;
+						}
 					}
-				}
-
-				if (! usingID) { // Make sure none of the rooms are using this id
-					break;
-				}
-				roomID++;
+				} while (idUsed); // Make sure none of the rooms are using this id
 			}
-			if (roomID == max) return null;
 
 			room = {
 				id: roomID,
@@ -156,13 +153,32 @@ const startServer = _ => {
 		return room;
 	};
 
+	const checks = {
+		fileExistsAndReady: (room, fileInfo, res) => {
+			if (room == null || fileInfo == null) { // The room doesn't exist or the file doesn't
+				res.status(404).send("MissingRoomOrFile");
+				return false;
+			}
+			if (! fileInfo.ready) {
+				res.setHeader("Retry-After", config.timings.clientRelated.fileNotReady);
+				res.status(503).send("StillProcessing");
+				return false;
+			}
+			return true
+		},
+		underRoomLimit: (room, res) => {
+			if (room == null) { // Reached room limit
+				res.setHeader("Retry-After", config.timings.clientRelated.maxRoomsReached);
+				res.status(503).send("RoomLimitReached");
+				return false;
+			}
+			return true;
+		}
+	};
+
 	app.get("/room/get/:roomName", async (req, res) => {
 		const room = await getOrCreateRoom(req.params.roomName);
-		if (room == null) { // Reached room limit
-			res.setHeader("Retry-After", config.timings.clientRelated.maxRoomsReached);
-			res.status(503).send("RoomLimitReached");
-			return;
-		}
+		if (! checks.underRoomLimit(room, res)) return;
 
 		res.json({
 			files: room.files.map(file => ({ // Don't expose a few things
@@ -175,20 +191,12 @@ const startServer = _ => {
 	app.get("/room/get/:roomName/:fileID", async (req, res) => {
 		const room = await getOrCreateRoom(req.params.roomName, false); // Don't create a new room if none exists
 		const fileInfo = room?.files?.[parseInt(req.params.fileID)];
-
-		if (room == null || fileInfo == null) { // The room doesn't exist or the file doesn't
-			res.status(404).send("MissingRoomOrFile");
-			return;
-		}
-		if (! fileInfo.ready) {
-			res.setHeader("Retry-After", config.timings.clientRelated.fileNotReady);
-			res.status(503).send("StillProcessing");
-			return;
-		}
+		if (! checks.fileExistsAndReady(room, fileInfo, res)) return;
 
 		let filePath = path.accessLocal(`sharedFiles/${room.id}/${fileInfo.storedName}`);
 		fileInfo.timeLeft = config.timings.delete.downloadedFile;
 		res.sendFile(filePath);
+		// TODO: bring back keep property and use the error handler function to set keep to false again after
 	});
 
 	{
@@ -207,11 +215,7 @@ const startServer = _ => {
 		}
 
 		const room = await getOrCreateRoom(req.params.roomName);
-		if (room == null) { // Reached room limit
-			res.setHeader("Retry-After", config.timings.clientRelated.maxRoomsReached);
-			res.status(503).send("RoomLimitReached");
-			return;
-		}
+		if (! checks.underRoomLimit(room, res)) return;
 
 		let file = req.files?.upload;
 		if (file == null) {
@@ -220,6 +224,7 @@ const startServer = _ => {
 		}
 		
 		if (state.totalSize + file.size > config.limits.max.totalFileSize) {
+			res.setHeader("Retry-After", config.timings.clientRelated.tooManyFiles);
 			res.status(503).send("TooManyFilesOnServer");
 			return;
 		}
@@ -250,16 +255,7 @@ const startServer = _ => {
 		let fileID = parseInt(req.params.fileID);
 		const room = await getOrCreateRoom(req.params.roomName, false); // Don't create a new room if none exists
 		const fileInfo = room?.files?.[fileID];
-
-		if (room == null || fileInfo == null) { // The room doesn't exist or the file doesn't
-			res.status(404).send("MissingRoomOrFile");
-			return;
-		}
-		if (! fileInfo.ready) {
-			res.setHeader("Retry-After", config.timings.clientRelated.fileNotReady);
-			res.status(503).send("StillProcessing");
-			return;
-		}
+		if (! checks.fileExistsAndReady(room, fileInfo, res)) return;
 
 		res.send("Deleted");
 		await deleteUpload(room, fileID);
@@ -268,16 +264,7 @@ const startServer = _ => {
 	app.post("room/extend/:roomName/:fileID", async (req, res) => { // Does something, so no GET
 		const room = await getOrCreateRoom(req.params.roomName, false); // Don't create a new room if none exists
 		const fileInfo = room?.files?.[parseInt(req.params.fileID)];
-
-		if (room == null || fileInfo == null) { // The room doesn't exist or the file doesn't
-			res.status(404).send("MissingRoomOrFile");
-			return;
-		}
-		if (! fileInfo.ready) {
-			res.setHeader("Retry-After", config.timings.clientRelated.fileNotReady);
-			res.status(503).send("StillProcessing");
-			return;
-		}
+		if (! checks.fileExistsAndReady(room, fileInfo, res)) return;
 
 		fileInfo.timeLeft = config.timings.delete.newFile;
 		res.send("Extended");
@@ -287,7 +274,7 @@ const startServer = _ => {
 		res.status(418).send("I'm a teapot, I can't brew coffee. Try tea instead.");
 	});
 	app.get("/brew/tea", (req, res) => {
-		res.status(418).send("Enjoy your tea. ☕");
+		res.send("Enjoy your tea. ☕");
 	});
 
 

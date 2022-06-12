@@ -10,7 +10,8 @@
         "clientRelated": {
             "cleaningUp": 0.5,
             "maxRoomsReached": 10,
-            "fileNotReady": 1
+            "fileNotReady": 1,
+            "tooManyFiles": 30
         }
     },
     "limits": {
