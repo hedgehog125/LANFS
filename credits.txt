@@ -1,0 +1,8 @@
+== Key ==
+Material Icons:
+https://materialdesignicons.com/
+and https://github.com/Templarian/MaterialDesign
+under Apache License 2.0
+
+== Icons ==
+Back: Material icon

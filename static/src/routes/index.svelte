@@ -1,5 +1,7 @@
 <script>
-    import RoomSelectorBox from "$lib/RoomSelectorBox.svelte";
+    import TopBar from "$lib/TopBar.svelte";
+    import WelcomeMessage from "$lib/WelcomeMessage.svelte";
+    import RoomSelector from "$lib/RoomSelector.svelte";
 
     /*
     upload = new FormData();
@@ -15,5 +17,7 @@
 </script>
 
 <main>
-    <RoomSelectorBox></RoomSelectorBox>
+    <TopBar></TopBar>
+    <WelcomeMessage></WelcomeMessage>
+    <RoomSelector></RoomSelector>
 </main>

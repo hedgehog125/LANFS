@@ -284,7 +284,8 @@ const startServer = _ => {
 	
 For access on the same machine: http://localhost:${PORT}/
 And for other devices on your LAN: http://${IP}:${PORT}/
-			`);
+`
+		);
 	});
 };
 
