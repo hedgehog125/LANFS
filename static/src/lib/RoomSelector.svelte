@@ -40,6 +40,7 @@
 
 	button, input {
 		border-color: black;
+		border-style: solid;
 	}
 
 	input {
@@ -60,11 +61,12 @@
 		top: 50%;
 		transform: translate(-50%, -50%);
 
-		transition: left, transform 1s;
+		transition-property: left, top, transform;
+		transition-duration: 5s;
 	}
 
 	input:placeholder-shown:focus::placeholder {
 		left: 0%;
-		transform: translateY(-50%);
+		transform: translate(0%, -50%);
 	}
 </style>
