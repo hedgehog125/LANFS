@@ -28,7 +28,7 @@
         top: 0px;
         min-height: 50px;
 
-        background-color: darkred;
+        background-color: rgb(50, 80, 210);
     }
     .space {
         margin-bottom: 50px;
@@ -51,7 +51,7 @@
         margin-left: auto;
 
 
-        color: orange;
+        color: rgb(255, 180, 40);
     }
 
     img {

@@ -108,6 +108,8 @@ const startServer = _ => {
 	}));
 
 	const getOrCreateRoom = async (roomName, create=true) => {
+		if (roomName == "") return null;
+
 		let room = state.rooms[roomName];
 		if (room == null) {
 			if (! create) return null;
@@ -277,6 +279,13 @@ const startServer = _ => {
 	});
 	app.get("/brew/tea", (req, res) => {
 		res.send("Enjoy your tea. ☕");
+	});
+
+	app.get("/info", (req, res) => {
+		res.json({
+			type: "LANFS",
+			clientConfig: config.client
+		});
 	});
 
 

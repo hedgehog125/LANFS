@@ -47,26 +47,12 @@
 		border-radius: 10px;
 		border-width: 2px;
 		width: 300px;
+		text-align: center;
 	}
 
 	button {
 		border-radius: 5px;
 		border-width: 1.5px;
 		background-color: rgb(130, 205, 255);
-	}
-
-	input::placeholder {
-		position: absolute;
-		left: 50%;
-		top: 50%;
-		transform: translate(-50%, -50%);
-
-		transition-property: left, top, transform;
-		transition-duration: 5s;
-	}
-
-	input:placeholder-shown:focus::placeholder {
-		left: 0%;
-		transform: translate(0%, -50%);
 	}
 </style>
