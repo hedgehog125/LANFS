@@ -103,7 +103,9 @@ const cleanUp = async _ => {
 };
 
 const startServer = _ => {
-	app.use(express.static("../static/build/"));
+	app.use(express.static("../static/build/", {
+		extensions: ["html"]
+	}));
 
 	const getOrCreateRoom = async (roomName, create=true) => {
 		let room = state.rooms[roomName];
