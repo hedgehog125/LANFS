@@ -19,7 +19,8 @@
             "rooms": 128,
             "fileSize": 2,
             "totalFileSize": 10,
-            "totalFileCount": 1000
+            "totalFileCount": 1000,
+            "expectedUploadOverhead": 25600
         }
     },
 

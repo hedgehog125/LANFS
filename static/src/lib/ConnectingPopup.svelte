@@ -1,7 +1,16 @@
+<script>
+	export let isNetworkError;
+</script>
+
 <main>
 	<div>
 		<p>
-			Connecting...
+			{#if isNetworkError}
+				Connection error. <br>
+				Will continue to retry...
+			{:else}
+				Connecting...
+			{/if}
 		</p>
 	</div>
 </main>
@@ -30,5 +39,6 @@
 	p {
 		font-size: 25px;
 		font-weight: bold;
+		text-align: center;
 	}
 </style>
