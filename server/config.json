@@ -17,7 +17,7 @@
     "limits": {
         "max": {
             "rooms": 128,
-            "fileSize": -1,
+            "fileSize": 2,
             "totalFileSize": 10,
             "totalFileCount": 1000
         }

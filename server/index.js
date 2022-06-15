@@ -1,6 +1,11 @@
 /*
 TODO
 
+Make sure configured max size is below or equal to node's max buffer size
+Reaching the max doesn't trigger the error like it should, it just cuts off the file
+Can having it in RAM be avoided?
+Prevent upload on client if it'll be too big. Maybe via the prep request
+Maybe should POST to uploadPrep first to get it recognised early and then use upload? Or can the function be called early?
 More security stuff involving timings I guess? Mainly around async stuff and assuming data is still correct. Maybe delay processing new rooms when the folder is being created for a new room or something
 Could have an extra second where things are half deleted? Requests behave as if it's deleted but new things still work around it?
 */
@@ -64,7 +69,10 @@ const deleteUpload = async (room, fileID) => {
 const loadConfig = async _ => {
 	config = JSON.parse(await fs.readFile(path.accessLocal("config.json")));
 	let max = config.limits.max;
-	if (max.fileSize != -1) max.fileSize *= GB_TO_BYTES;
+	if (max.fileSize != -1) {
+		max.fileSize *= GB_TO_BYTES;
+		max.fileSize--; // The limits are one less
+	}
 	max.totalFileSize *= GB_TO_BYTES;
 
 	PORT = process.env.PORT?? config.port;
@@ -238,6 +246,7 @@ const startServer = _ => {
 		let id = room.files.indexOf(null);
 		if (id == -1) id = room.files.length;
 
+		// There shouldn't be a mismatch between the extension and the MIME type but just in case, the file is stored using the extension for that MIME type (so it's used when it's sent) and it's downloaded as the original file name (which includes the original extension)
 		let ext = "." + mime.extension(file.mimetype);
 		if (ext == ".") ext = "";
 		const storedName = `${id}${ext}`;

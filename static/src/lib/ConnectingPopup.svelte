@@ -1,6 +1,8 @@
 <main>
 	<div>
-		Connecting...
+		<p>
+			Connecting...
+		</p>
 	</div>
 </main>
 
@@ -13,10 +15,20 @@
 		bottom: 0;
 
 		margin: 50px;
-		background-color: red;
+		margin-top: 100px;
+		background-color: rgb(200, 200, 200);
 		border-radius: 100px;
 		border-style: none;
 
+		font-weight: bold;
+
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	p {
+		font-size: 25px;
 		font-weight: bold;
 	}
 </style>
