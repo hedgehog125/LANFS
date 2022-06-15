@@ -207,13 +207,18 @@ const startServer = _ => {
 		if (! checks.fileExistsAndReady(room, fileInfo, res)) return;
 
 		let filePath = path.accessLocal(`sharedFiles/${room.id}/${fileInfo.storedName}`);
+		fileInfo.downloadingCount++;
 		fileInfo.timeLeft = config.timings.delete.downloadedFile;
-		res.sendFile(filePath, {
-			headers: {
-				"Content-Type": fileInfo.mime
-			}
-		});
-		// TODO: bring back keep property and use the error handler function to set keep to false again after
+
+		(fileInfo => {
+			res.sendFile(filePath, {
+				headers: {
+					"Content-Type": fileInfo.mime
+				}
+			}, _ => {
+				fileInfo.downloadingCount--;
+			});
+		})(fileInfo);
 	});
 
 	app.post("/room/upload/:roomName/", async (req, res) => {
@@ -232,7 +237,6 @@ const startServer = _ => {
 
 		let fileSize = parseInt(req.headers["content-length"]); // Not completely accurate due to overhead but will be reduced once the length is known
 		if (fileSize - max.expectedUploadOverhead > maxFilesize) { // Stop the request early if it'll be too big
-			console.log("A");
 			res.status(413).send("FileTooBig"); // TODO: use different if due to too many files on server
 			return;
 		}
@@ -271,8 +275,10 @@ const startServer = _ => {
 			timeLeft: config.timings.delete.newFile,
 			size: fileSize,
 			meter: meter(),
+
 			ready: false,
-			deleting: false
+			deleting: false,
+			downloadingCount: 0
 		};
 		room.fileCount++;
 
@@ -361,7 +367,6 @@ const startServer = _ => {
 		});
 	}
 
-
 	app.listen(PORT, _ => {
 		console.log(
 			`Running on port ${PORT} using IP ${IP}.
@@ -379,7 +384,12 @@ const main = _ => {
 
 		for (let fileID in room.files) {
 			const file = room.files[fileID];
-			if (file == null) continue;
+			if (
+				file == null
+				|| (! file.ready)
+				|| file.downloadingCount != 0
+				|| file.deleting
+			) continue;
 
 			if (file.timeLeft == 0) {
 				deleteUpload(room, fileID);
