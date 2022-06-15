@@ -208,7 +208,11 @@ const startServer = _ => {
 
 		let filePath = path.accessLocal(`sharedFiles/${room.id}/${fileInfo.storedName}`);
 		fileInfo.timeLeft = config.timings.delete.downloadedFile;
-		res.sendFile(filePath);
+		res.sendFile(filePath, {
+			headers: {
+				"Content-Type": fileInfo.mime
+			}
+		});
 		// TODO: bring back keep property and use the error handler function to set keep to false again after
 	});
 
@@ -225,6 +229,13 @@ const startServer = _ => {
 		const max = config.limits.max;
 		let spaceLeft = max.totalFileSize - state.totalSize;
 		let maxFilesize = max.fileSize == -1? spaceLeft : Math.min(max.fileSize, spaceLeft);
+
+		let fileSize = parseInt(req.headers["content-length"]); // Not completely accurate due to overhead but will be reduced once the length is known
+		if (fileSize - max.expectedUploadOverhead > maxFilesize) { // Stop the request early if it'll be too big
+			console.log("A");
+			res.status(413).send("FileTooBig"); // TODO: use different if due to too many files on server
+			return;
+		}
 
 		let fileHandler;
 		try {
@@ -245,13 +256,6 @@ const startServer = _ => {
 			res.status(400).send("InvalidForm"); // TODO: send different codes depending on if it's server or client's fault
 			return;
 		}
-		let fileSize = parseInt(req.headers["content-length"]); // Not completely accurate due to overhead but will be reduced once the length is known
-		if (fileSize - max.expectedUploadOverhead > maxFilesize) { // Stop the request early if it'll be too big
-			console.log("A");
-			res.status(413).send("FileTooBig"); // TODO: use different if due to too many files on server
-			return;
-		}
-
 		state.totalSize += fileSize; 
 
 		// Prepare for the file
@@ -262,6 +266,8 @@ const startServer = _ => {
 		room.files[id] = {
 			originalName: null,
 			storedName: null,
+			mime: null,
+
 			timeLeft: config.timings.delete.newFile,
 			size: fileSize,
 			meter: meter(),
@@ -272,34 +278,42 @@ const startServer = _ => {
 
 		((res, room, id) => {
 			const m = room.files[id].meter;
+			let stream;
 
 			fileHandler.on("file", (name, file, info) => {
 				// There shouldn't be a mismatch between the extension and the MIME type but just in case, the file is stored using the extension for that MIME type (so it's used when it's sent) and it's downloaded as the original file name (which includes the original extension)
-				let ext = "." + mime.extension(info.mimeType);
-				if (ext == ".") ext = "";
+				let ext =  mime.extension(info.mimeType);
+				if (ext === false) ext = "";
+				else if (ext != "") ext = "." + ext;
+
 				const storedName = `${id}${ext}`;
 
 				let roomFileInfo = room.files[id];
 				roomFileInfo.originalName = info.filename;
 				roomFileInfo.storedName = storedName;
+				roomFileInfo.mime = info.mimeType;
 
 				const filePath = path.accessLocal(`sharedFiles/${room.id}/${storedName}`);
 				file.pipe(m).pipe(oldFS.createWriteStream(filePath));
+
+				stream = file;
 			});
 			fileHandler.on("close", _ => {
 				let roomFileInfo = room.files[id];
 				state.totalSize += m.bytes - roomFileInfo.size; // Subtract the difference now the proper size is known 
 
+				// It's easier to set up everything anyway even if the upload is invalid so it can be deleted more easily
 				roomFileInfo.size = m.bytes;
 				roomFileInfo.ready = true;
 				roomFileInfo.meter = null;
 
-				res.send("Uploaded");
-				console.log("B");
-			});
-			fileHandler.on("limit", _ => {
-				res.status(413).send("FileTooBig");
-				console.log("A"); // TODO: handle limit reached, clean up and send response
+				if (stream.truncated) { // Urgh, we just wasted a bunch of time uploading only to have to delete the upload
+					res.status(413).send("FileTooBig");
+					deleteUpload(room, id);
+				}
+				else {
+					res.send("Uploaded");
+				}
 			});
 		})(res, room, id);
 		req.pipe(fileHandler);
