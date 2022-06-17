@@ -55,7 +55,7 @@
     const onUpload = files => {
         let tooBig = false;
         for (let file of files) {
-            if (file.size > config.max.fileSize && false) { // TODO
+            if (file.size > config.max.fileSize) {
                 tooBig = true;
                 continue;
             }

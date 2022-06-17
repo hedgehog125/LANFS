@@ -1,4 +1,6 @@
 <script>
+	import MobileNewline from "$lib/MobileNewline.svelte";
+
 	let roomName;
 	
 	const submit = _ => {
@@ -8,22 +10,33 @@
 
 <main>
 	<div>
-		<h3>
+		<h2>
 			To get started, enter a new or existing room name...
-		</h3>
+		</h2>
 
 		<form on:submit|preventDefault={submit}>
 			<input type="text" bind:value={roomName} aria-label="A name for a new or existing room" placeholder="Enter a room name...">
+			<MobileNewline></MobileNewline>
 			<button type="submit">Join</button>
 		</form>
 	</div>
 </main>
 
 <style>
-	:not(h3) {
-		font-size: 20px;
+    @media only screen and (max-width: 600px) {
+		button {
+			margin-top: px;
+			width: 150px;
+		}
 	}
-	:not(h3, input) {
+
+	* {
+		font-size: 22.5px;
+	}
+	h2 {
+		font-size: unset;
+	}
+	:not(input) {
 		font-weight: bold;
 	}
 

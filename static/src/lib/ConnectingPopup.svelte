@@ -23,10 +23,12 @@
 		right: 0;
 		bottom: 0;
 
-		margin: 50px;
-		margin-top: 100px;
+		--base-margin: min(2.5vw, 22.5vh);
+		margin: var(--base-margin);
+		margin-top: calc(var(--base-margin) + 50px);
+
 		background-color: rgb(200, 200, 200);
-		border-radius: 100px;
+		border-radius: min(12.5vw, 12.5vh);
 		border-style: none;
 
 		font-weight: bold;
