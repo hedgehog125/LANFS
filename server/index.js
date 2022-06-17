@@ -22,20 +22,15 @@ const oldFS = require("fs");
 const busboy = require("busboy");
 const mime = require("mime-types");
 const meter = require("stream-meter");
+const gzipStatic = require("express-static-gzip");
 
 const ipPackage = require("ip");
 const IP = ipPackage.address();
 
 const path = require("path");
-path.sandboxPath = path => {
-	let index = path.indexOf(__dirname);
-	if (index != 0) { // The base path must appear at the start of the path
-		throw new Error(`Attempted to access a file or folder outside of the local path.\nPath:\n${path}`);
-	}
-	return path;
-};
-path.accessLocal = localPath => path.sandboxPath(path.join(__dirname, localPath));
-path.accessOutsideLocal = localPath => path.join(__dirname, localPath);
+const helper = require("./src/helper.js");
+helper.install.sandbox(path, __dirname);
+
 
 const express = require("express");
 const app = express();
@@ -80,40 +75,23 @@ const loadConfig = async _ => {
 
 const cleanUp = async _ => {
 	state.cleaningUp = true;
-	const shareFolder = path.accessLocal("sharedFiles");
-	
-	let folderInfo;
-	try {
-		folderInfo = await fs.stat(shareFolder);
-	}
-	catch (error) {
-		await fs.mkdir(shareFolder);
-		folderInfo = await fs.stat(shareFolder);
-	}
-
-
-	if (! folderInfo.isDirectory()) {
-		throw new Error("The name for the needed directory \"sharedFiles\" has been taken by a file.");
-	}
-	let toDelete = await fs.readdir(shareFolder);
-
-	for (let folderNameShort of toDelete) {
-		folderName = path.sandboxPath(path.join(shareFolder, folderNameShort));
-
-		if ((await fs.stat(folderName)).isDirectory()) {
-			await fs.rm(folderName, {
-				recursive: true
-			});
-		}
-	}
-
+	await helper.clearDir("sharedFiles", fs, path);
 	state.cleaningUp = false;
 };
 
 const startServer = _ => {
-	app.use(express.static("../static/build/", {
-		extensions: ["html"]
-	}));
+	if (config.serve.gzip) {
+		app.use(gzipStatic("gzipBuild/", {
+			serveStatic: {
+				extensions: ["html"]
+			}
+		}));
+	}
+	else {
+		app.use(express.static("../static/build/", {
+			extensions: ["html"]
+		}));
+	}
 
 	const getOrCreateRoom = async (roomName, create=true) => {
 		if (roomName == "") return null;
@@ -389,7 +367,7 @@ const startServer = _ => {
 
 	app.listen(PORT, _ => {
 		console.log(
-			`Running on port ${PORT} using IP ${IP}.
+			`Running on port ${PORT} using IP ${IP} with gzip ${config.serve.gzip? "enabled" : "disabled"}.
 	
 For access on the same machine: http://localhost:${PORT}/
 And for other devices on your LAN: http://${IP}:${PORT}/

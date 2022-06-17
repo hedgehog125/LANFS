@@ -32,5 +32,8 @@
 
     "log": {
         "unusual": true
+    },
+    "serve": {
+        "gzip": true
     }
 }

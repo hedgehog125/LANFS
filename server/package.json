@@ -11,8 +11,10 @@
   "dependencies": {
     "busboy": "^1.6.0",
     "express": "^4.18.1",
+    "express-static-gzip": "^2.1.7",
     "ip": "^1.1.8",
     "mime-types": "^2.1.35",
+    "node-gzip": "^1.1.2",
     "stream-meter": "^1.0.4"
   }
 }
