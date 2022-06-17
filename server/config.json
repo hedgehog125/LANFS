@@ -28,5 +28,9 @@
         "timings": {
             "refreshDelay": 1
         }
+    },
+
+    "log": {
+        "unusual": true
     }
 }
