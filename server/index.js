@@ -1,6 +1,7 @@
 /*
 TODO
 
+Use await for when a request can't be completed due to the server cleaning up. It won't be long
 Check size on client side
 
 Enforce total file count limit. Also check others
@@ -22,7 +23,7 @@ const oldFS = require("fs");
 const busboy = require("busboy");
 const mime = require("mime-types");
 const meter = require("stream-meter");
-const gzipStatic = require("express-static-gzip");
+const serveCompressed = require("express-precompressed");
 
 const ipPackage = require("ip");
 const IP = ipPackage.address();
@@ -80,18 +81,10 @@ const cleanUp = async _ => {
 };
 
 const startServer = _ => {
-	if (config.serve.gzip) {
-		app.use(gzipStatic("gzipBuild/", {
-			serveStatic: {
-				extensions: ["html"]
-			}
-		}));
-	}
-	else {
-		app.use(express.static("../static/build/", {
-			extensions: ["html"]
-		}));
-	}
+	app.use(serveCompressed("gzipBuild/", "../static/build/", {
+		extensions: ["html"],
+		disableCompression: ! config.serve.gzip
+	}));
 
 	const getOrCreateRoom = async (roomName, create=true) => {
 		if (roomName == "") return null;
