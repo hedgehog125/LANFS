@@ -1,4 +1,6 @@
 <script>
+    import UploadedFile from "$lib/UploadedFile.svelte";
+
     export let roomName;
     export let roomData;
 
@@ -10,13 +12,7 @@
 <main>
     {#each roomData.files as file, index (index)}
         {#if file != null}
-            <a href={`/room/get/${roomName}/${index}`} download={file.fileName} on:click={e => handleClick(e, file)}>
-                {file.fileName}
-            </a>
-            {#if ! file.ready}
-                {Math.floor(file.uploadProgress * 100)}%
-            {/if}
-            <br>
+            <UploadedFile {roomName} {file} {index} {handleClick}></UploadedFile>
         {/if}
     {/each}
 </main>
