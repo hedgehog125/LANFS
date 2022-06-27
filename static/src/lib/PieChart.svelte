@@ -1,81 +1,36 @@
 <script>
-    import { onMount } from "svelte";
-
-
-    // Based off of: https://stackoverflow.com/questions/21205652/how-to-draw-a-circle-sector-in-css
+    // Based off of: https://sparkbox.com/foundry/how_to_code_an_SVG_pie_chart
     export let amount;
     export let interpolateTime;
-    let interpolatedAmount = amount;
-    let interpolateSpeed;
-    let lastAmount;
 
-    const thickness = 0.005;
-    const shrunkCenter = 0.5 - thickness;
-    const scaleNumber = 2 + (thickness * 3); // Scales the end coordinates back up to reach the edge, minus the line thickness and a bit more
-    const innerColor = "darkgrey";
-    const outerColor = "lightgrey";
-    const outlineColor = "black";
-
-    let [endX, endY] = [[], []];
-    const updateCoords = value => {
-        let x = 0.5 + (Math.sin(value * (Math.PI * 2)) / scaleNumber);
-        let y = 0.5 - (Math.cos(value * (Math.PI * 2)) / scaleNumber);
-        let passedHalf = value > 0.5;
-        let bottomY = (1 - (thickness / 2));
-
-        endX[0] = passedHalf? 0.5 : x;
-        endY[0] = passedHalf? bottomY : y;
-
-        endX[1] = passedHalf? x : 0.5;
-        endY[1] = passedHalf? y : bottomY;
-    };
-    $: {
-        updateCoords(interpolatedAmount); // This is the only value change that actually has to be detected
-    }
-
-    let animFrame, lastTimestamp;
-    const update = timestamp => {
-        if (lastTimestamp == null) {
-            interpolatedAmount = amount; 
-        }
-        else {
-            let timePassed = timestamp - lastTimestamp;
-
-            if (lastAmount != amount) {
-                console.log(amount);
-                interpolateSpeed = ((amount - lastAmount) / interpolateTime) / 1000;
-
-                lastAmount = amount;
-            }
-            // Calculate change if different, then change by the divided difference. Use the time elapsed
-            if (Math.abs(interpolatedAmount - amount) > 0.01) {
-                interpolatedAmount += interpolateSpeed * timePassed;
-            }
-        }
-
-        lastTimestamp = timestamp;
-        animFrame = requestAnimationFrame(update);
-    };
-    onMount(_ => {
-        update();
-
-        return _ => {
-            cancelAnimationFrame(animFrame);
-        };
-    });
+    const thickness = 0.015;
 </script>
 
 <main>
-    <svg viewBox="0 0 1 1" width=500 height=500>
-        <circle fill={outerColor} cx=0.5 cy=0.5 r={shrunkCenter}></circle>
-        <path fill={innerColor} d="M0.5,0.5 L0.5,{thickness} A{shrunkCenter},{shrunkCenter} 1 0,1 {endX[0]},{endY[0]} z"></path>
-        <path fill={innerColor} d="M0.5,0.5 L0.5,{1 - thickness} A{shrunkCenter},{shrunkCenter} 1 0,1 {endX[1]},{endY[1]} z"></path>
-        <circle fill="none" stroke={outlineColor} stroke-width={thickness} cx=0.5 cy=0.5 r={shrunkCenter}></circle>
+    <svg viewBox="{-thickness / 2} {-thickness / 2} {1 + thickness} {1 + thickness}">
+        <circle id="background" cx=0.5 cy=0.5 r=0.5></circle>
+        <circle id="slice" style="transition-duration: {interpolateTime}s" stroke-dasharray="{amount * (Math.PI / 2)} 3.141592653589793" stroke-width=0.5 cx=0.5 cy=0.5 r=0.25 transform="rotate(-90) translate(-1)"></circle>
+        <circle id="outline" stroke-width={thickness} cx=0.5 cy=0.5 r=0.5></circle>
     </svg>
 </main>
 
 <style>
-    svg > path {
-        transition: d linear 16.6666666667ms;
+    svg {
+        width: 25px;
+        height: 25px;
+    }
+    #background {
+        fill: none;
+    }
+    #slice {
+        stroke: #3250d2;
+        fill: none;
+
+        transition-timing-function: linear;
+        transition-property: stroke-dasharray;
+    }
+    #outline {
+        stroke: black;
+        fill: none;
     }
 </style>
