@@ -18,6 +18,8 @@
     svg {
         width: 25px;
         height: 25px;
+
+        display: block;
     }
     #background {
         fill: none;

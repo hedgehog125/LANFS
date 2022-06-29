@@ -3,16 +3,25 @@
 
     export let roomName;
     export let roomData;
-
-    const handleClick = (e, file) => {
-        if (! file.ready) e.preventDefault();
-    };
 </script>
 
 <main>
-    {#each roomData.files as file, index (index)}
-        {#if file != null}
-            <UploadedFile {roomName} {file} {index} {handleClick}></UploadedFile>
-        {/if}
-    {/each}
+    {#if roomData.files.length == 0}
+        <p class="bold">
+            Looks like there aren't any files here yet. <br>
+            Try uploading one by dropping it here or by clicking the upload button.
+        </p>
+    {:else}
+        {#each roomData.files as file, index (index)}
+            {#if file != null}
+                <UploadedFile {roomName} {file} {index}></UploadedFile>
+            {/if}
+        {/each}
+    {/if}
 </main>
+
+<style>
+    .bold {
+        font-weight: bold;
+    }
+</style>

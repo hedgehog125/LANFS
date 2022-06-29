@@ -1,17 +1,14 @@
 /*
 TODO
 
+Implement file too big handling in UI. Currently runs debugger
+Handle failed fetches
 Use await for when a request can't be completed due to the server cleaning up. It won't be long
-Check size on client side
+Use a preflight system for the upload. Client sends request to a different URL, with the size of the file. Server sends back a random key and id it'll be at. This id and the space for the file is now reserved, client has 5 seconds to start the main request or everything's ondone and the code is invalid. The upload also fails if the file becomes bigger than what was stated upfront.
+Wait the refresh delay in UI to make sure pie chart completes
 
 Enforce total file count limit. Also check others
-Make sure configured max size is below or equal to node's max buffer size
-Reaching the max doesn't trigger the error like it should, it just cuts off the file
-Can having it in RAM be avoided?
-Prevent upload on client if it'll be too big. Maybe via the prep request
-Maybe should POST to uploadPrep first to get it recognised early and then use upload? Or can the function be called early?
 More security stuff involving timings I guess? Mainly around async stuff and assuming data is still correct. Maybe delay processing new rooms when the folder is being created for a new room or something
-Could have an extra second where things are half deleted? Requests behave as if it's deleted but new things still work around it?
 */
 
 
@@ -45,6 +42,7 @@ const state = {
 };
 let config; // It'll be loaded from the disk
 let PORT; // Loaded as part of config or from the environment variable
+
 
 const deleteUpload = async (room, fileID) => {
 	const fileInfo = room.files[fileID];
@@ -164,12 +162,13 @@ const startServer = _ => {
 		if (! checks.underRoomLimit(room, res)) return;
 
 		res.json({
-			files: room.files.map(file => (file.deleting? null : { // Don't expose a few things
+			files: room.files.map(file => ((file.deleting || (! file.metaUploaded))? null : { // Don't expose a few things
 				fileName: file.originalName,
 				timeLeft: file.timeLeft,
 				ready: file.ready,
 				uploadProgress: file.ready? 1 : (file.size == 0? 0 : (file.meter.bytes / file.size)),
-				size: file.size
+				size: file.size,
+				quickDownloadDelete: file.quickDownloadDelete
 			}))
 		});
 	});
@@ -181,6 +180,7 @@ const startServer = _ => {
 		let filePath = path.accessLocal(`sharedFiles/${room.id}/${fileInfo.storedName}`);
 		fileInfo.downloadingCount++;
 		fileInfo.timeLeft = config.timings.delete.downloadedFile;
+		fileInfo.quickDownloadDelete = true;
 
 		res.sendFile(filePath, {
 			headers: {
@@ -252,8 +252,10 @@ const startServer = _ => {
 			meter: meter(),
 
 			ready: false,
+			metaUploaded: false,
 			deleting: false,
-			downloadingCount: 0
+			downloadingCount: 0,
+			quickDownloadDelete: false // If the file is using the shorter time because it's been downloaded
 		};
 		room.fileCount++;
 
@@ -296,6 +298,7 @@ const startServer = _ => {
 			roomFileInfo.originalName = info.filename;
 			roomFileInfo.storedName = storedName;
 			roomFileInfo.mime = info.mimeType;
+			roomFileInfo.metaUploaded = true;
 
 			const filePath = path.accessLocal(`sharedFiles/${room.id}/${storedName}`);
 			stream.pipe(m).pipe(oldFS.createWriteStream(filePath));
@@ -332,6 +335,7 @@ const startServer = _ => {
 		if (! checks.fileExistsAndReady(room, fileInfo, res)) return;
 
 		fileInfo.timeLeft = config.timings.delete.newFile;
+		fileInfo.quickDownloadDelete = false;
 		res.send("Extended");
 	});
 
@@ -344,7 +348,9 @@ const startServer = _ => {
 
 	{
 		const max = config.limits.max;
+		const deleteTimings = config.timings.delete;
 		let roughMaxFilesize = max.fileSize == -1? max.totalFileSize : Math.min(max.fileSize, max.totalFileSize);
+
 		app.get("/info", (req, res) => {
 			res.json({
 				type: "LANFS",
@@ -352,6 +358,12 @@ const startServer = _ => {
 					...config.client,
 					max: {
 						fileSize: roughMaxFilesize
+					}
+				},
+				timings: { // Send a few of the timings so percentages can be calculated
+					delete: {
+						newFile: deleteTimings.newFile,
+						downloadedFile: deleteTimings.downloadedFile
 					}
 				}
 			});

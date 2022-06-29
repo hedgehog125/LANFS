@@ -1,5 +1,5 @@
 <script>
-	import MobileNewline from "$lib/MobileNewline.svelte";
+	import MobileNewline from "$lib/util/MobileNewline.svelte";
 
 	let roomName;
 	

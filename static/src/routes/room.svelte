@@ -1,15 +1,15 @@
 <script>
+    import { onMount } from "svelte";
+    import { config, getInfo } from "$lib/util/GetServerInfo.js";
+    import { runParallel } from "$lib/util/Tools.js";
+
     import TopBar from "$lib/TopBar.svelte";
     import ConnectingPopup from "$lib/ConnectingPopup.svelte";
     import FilePool from "$lib/FilePool.svelte";
     import FileUpload from "$lib/FileUpload.svelte";
 
-    import { onMount } from "svelte";
-    import { page } from "$app/stores";
-
     const MIN_CONNECT_TIME = 0.75 * 1000;
 
-    let config, info;
     let roomData;
     let roomName;
     let loading = true;
@@ -17,9 +17,9 @@
     let isNetworkError = false;
 
     const reloadRoom = async _ => {
-        let res;
+        let start = Date.now();
         try {
-            res = await fetch(`/room/get/${roomName}`);
+            let res = await fetch(`/room/get/${roomName}`);
             if (res.ok) {
                 roomData = await res.json();
             }
@@ -34,19 +34,16 @@
         }
 
         if (roomData) {
-            loadingDoneTask = setTimeout(_ => {
-                loading = false;
-            }, MIN_CONNECT_TIME);
+            if (loading) {
+                loadingDoneTask = setTimeout(_ => {
+                    loading = false;
+                }, MIN_CONNECT_TIME - (Date.now() - start));
+            }
         }
-        else {
+        else { // If it fails on load, the refreshing should mean it'll eventually get the room data
             loading = true;
             if (loadingDoneTask != null) clearTimeout(loadingDoneTask);
         }
-    };
-    const loadConfig = async _ => {
-        let res = await fetch("/info");
-        info = await res.json();
-        config = info.clientConfig;
     };
 
     const invalidRoom = _ => {
@@ -90,8 +87,7 @@
             return;
         }
 
-        reloadRoom(); // Start loading it at the same time as the config loads
-        await loadConfig();
+        await runParallel(getInfo, reloadRoom);
 
         setInterval(reloadRoom, config.timings.refreshDelay * 1000);
     });

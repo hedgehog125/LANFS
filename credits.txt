@@ -8,3 +8,5 @@ under Apache License 2.0
 Back: Material icon, arrow left, Google
 Download: Material icon, download, Google
 Close: Material icon, close, Google
+Extend time: Material icon, timer-plus, Colton Wiscombe
+Uploaded file icon: Material icon, file-document-outline, Google

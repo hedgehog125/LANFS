@@ -1,10 +1,10 @@
 {
   ".svelte-kit/runtime/client/start.js": {
-    "file": "start-3904b4f3.js",
+    "file": "start-1ac546ca.js",
     "src": ".svelte-kit/runtime/client/start.js",
     "isEntry": true,
     "imports": [
-      "_index-c080b2ec.js"
+      "_index-00bb9875.js"
     ],
     "dynamicImports": [
       ".svelte-kit/runtime/components/layout.svelte",
@@ -14,60 +14,62 @@
     ]
   },
   ".svelte-kit/runtime/components/layout.svelte": {
-    "file": "layout.svelte-d66d395a.js",
+    "file": "layout.svelte-09a0884c.js",
     "src": ".svelte-kit/runtime/components/layout.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-c080b2ec.js"
+      "_index-00bb9875.js"
     ]
   },
   ".svelte-kit/runtime/components/error.svelte": {
-    "file": "error.svelte-b2e0a5da.js",
+    "file": "error.svelte-674d3627.js",
     "src": ".svelte-kit/runtime/components/error.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-c080b2ec.js"
+      "_index-00bb9875.js"
     ]
   },
   "src/routes/index.svelte": {
-    "file": "pages/index.svelte-e609006e.js",
+    "file": "pages/index.svelte-6402fe8c.js",
     "src": "src/routes/index.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-c080b2ec.js",
-      "_TopBar-684afaae.js"
+      "_index-00bb9875.js",
+      "_TopBar-63190aca.js"
     ],
     "css": [
       "assets/pages/index.svelte-56891da8.css"
     ]
   },
   "src/routes/room.svelte": {
-    "file": "pages/room.svelte-529e749e.js",
+    "file": "pages/room.svelte-07a7e728.js",
     "src": "src/routes/room.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-c080b2ec.js",
-      "_TopBar-684afaae.js"
+      "_index-00bb9875.js",
+      "_TopBar-63190aca.js"
     ],
     "css": [
-      "assets/pages/room.svelte-1e455365.css"
+      "assets/pages/room.svelte-44f5e524.css"
     ],
     "assets": [
       "assets/download-ddd256eb.svg",
-      "assets/close-02f49dd1.svg"
+      "assets/close-02f49dd1.svg",
+      "assets/timer-plus-0c3cdcef.svg",
+      "assets/file-document-outline-8da5362f.svg"
     ]
   },
-  "_index-c080b2ec.js": {
-    "file": "chunks/index-c080b2ec.js"
+  "_index-00bb9875.js": {
+    "file": "chunks/index-00bb9875.js"
   },
-  "_TopBar-684afaae.js": {
-    "file": "chunks/TopBar-684afaae.js",
+  "_TopBar-63190aca.js": {
+    "file": "chunks/TopBar-63190aca.js",
     "imports": [
-      "_index-c080b2ec.js"
+      "_index-00bb9875.js"
     ],
     "css": [
       "assets/TopBar-56298718.css"
