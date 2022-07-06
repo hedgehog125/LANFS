@@ -2,9 +2,9 @@
     import { onMount } from "svelte";
     import { config, getInfo } from "$lib/util/GetServerInfo.js";
     import { runParallel } from "$lib/util/Tools.js";
-
+    
     import TopBar from "$lib/TopBar.svelte";
-    import ConnectingPopup from "$lib/ConnectingPopup.svelte";
+    import Popups from "$lib/Popups.svelte";
     import FilePool from "$lib/FilePool.svelte";
     import FileUpload from "$lib/FileUpload.svelte";
 
@@ -15,6 +15,11 @@
     let loading = true;
     let loadingDoneTask;
     let isNetworkError = false;
+
+    let popupMessageCode = -1;
+    const handlePopupClose = _ => {
+        popupMessageCode = -1;
+    };
 
     const reloadRoom = async _ => {
         let start = Date.now();
@@ -49,7 +54,7 @@
     const invalidRoom = _ => {
         location.href = "/";
     };
-    const onUpload = files => {
+    const handleUpload = files => {
         let tooBig = false;
         for (let file of files) {
             if (file.size > config.max.fileSize) {
@@ -78,7 +83,7 @@
         }
 
         if (tooBig) {
-            debugger; // TODO: handle in UI
+            popupMessageCode = 0;
         }
     };
 
@@ -98,10 +103,9 @@
 <main>
     <TopBar></TopBar>
 
-    {#if loading}
-        <ConnectingPopup {isNetworkError}></ConnectingPopup>
-    {:else}
+    <Popups {isNetworkError} {loading} {popupMessageCode} {handlePopupClose}></Popups>
+    {#if ! loading}
         <FilePool {roomName} {roomData}></FilePool>
-        <FileUpload {onUpload}></FileUpload>
+        <FileUpload {handleUpload}></FileUpload>
     {/if}
 </main>

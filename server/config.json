@@ -18,7 +18,7 @@
         "max": {
             "rooms": 128,
             "fileSize": -1,
-            "totalFileSize": 10,
+            "totalFileSize": 1,
             "totalFileCount": 1000,
             "expectedUploadOverhead": 25600
         }

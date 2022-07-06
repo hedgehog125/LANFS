@@ -10,12 +10,13 @@ Check scaling
 Upload button instead of just drag and drop
 Don't show time while file is downloading, or display a different message
 
-Bugs
-Error: write EPIPE on download disconnect 
-Client aborting uploads isn't properly handled. The code will be 400 and request.aborted will be true "Error: Request aborted". Or at least sometimes...? Might be a busboy issue
-
 Enforce total file count limit. Also check others
 More security stuff involving timings I guess? Mainly around async stuff and assuming data is still correct. Maybe delay processing new rooms when the folder is being created for a new room or something
+Proper tab order
+
+= Bugs =
+Error: write EPIPE on download disconnect 
+Client aborting uploads isn't properly handled. The code will be 400 and request.aborted will be true "Error: Request aborted". Or at least sometimes...? Might be a busboy issue
 */
 
 
@@ -55,11 +56,13 @@ const deleteUpload = async (room, fileID) => {
 	const fileInfo = room.files[fileID];
 	fileInfo.deleting = true;
 
-	let filePath = path.accessLocal(`sharedFiles/${room.id}/${fileInfo.storedName}`);
-	await fs.rm(filePath);
+	if (fileInfo.metaUploaded) {
+		let filePath = path.accessLocal(`sharedFiles/${room.id}/${fileInfo.storedName}`);
+		await fs.rm(filePath);
+	}
 	
 	room.fileCount--;
-	state.totalSize -= fileInfo.size;
+	state.totalSize -= fileInfo.size; // A guess is still known even if the upload immediately fails so no metadata
 	if (room.fileCount == 0) {
 		room.files = [];
 		room.timeLeft = config.timings.delete.unusedRoom;
@@ -287,7 +290,7 @@ const startServer = _ => {
 
 		req.on("aborted", _ => { // Connection stopped mid-way. Discard the file
 			req.unpipe(fileHandler);
-			stream.unpipe(m);
+			if (stream) stream.unpipe(m);
 			m.end();
 
 			finalProcess(roomFileInfo);
@@ -296,7 +299,12 @@ const startServer = _ => {
 			res.end();
 
 			if (config.log.unusual) {
-				console.log("File upload failed due to client disconnecting.");
+				if (stream) {
+					console.log("File upload failed due to client disconnecting.");
+				}
+				else {
+					console.log("Upload cancelled as content-length is too big.");
+				}
 			}
 		});
 

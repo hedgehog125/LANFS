@@ -1,7 +1,7 @@
 <script>
-    export let onUpload;
+    export let handleUpload;
 
-    const handleUpload = e => {
+    const handleUploadInternal = e => {
         let fileInfos = e.dataTransfer.items;
 
         if (fileInfos) {
@@ -12,10 +12,10 @@
                 }
             }
             if (files.length != 0) {
-                onUpload(files);
+                handleUpload(files);
             }
         }
     };
 </script>
 
-<svelte:window on:dragover|preventDefault on:drop|preventDefault={handleUpload}></svelte:window>
+<svelte:window on:dragover|preventDefault on:drop|preventDefault={handleUploadInternal}></svelte:window>
