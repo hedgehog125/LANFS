@@ -63,6 +63,8 @@
             fetch(`room/upload/${roomName}`, {
                 method: "POST",
                 body: upload
+            }).catch(error => {
+                console.log(error.name);
             });
 
             // While we wait for the refresh, might as well temporarily add the files into the UI

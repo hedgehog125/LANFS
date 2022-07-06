@@ -6,6 +6,13 @@ Handle failed fetches
 Use await for when a request can't be completed due to the server cleaning up. It won't be long
 Use a preflight system for the upload. Client sends request to a different URL, with the size of the file. Server sends back a random key and id it'll be at. This id and the space for the file is now reserved, client has 5 seconds to start the main request or everything's ondone and the code is invalid. The upload also fails if the file becomes bigger than what was stated upfront.
 Wait the refresh delay in UI to make sure pie chart completes
+Check scaling
+Upload button instead of just drag and drop
+Don't show time while file is downloading, or display a different message
+
+Bugs
+Error: write EPIPE on download disconnect 
+Client aborting uploads isn't properly handled. The code will be 400 and request.aborted will be true "Error: Request aborted". Or at least sometimes...? Might be a busboy issue
 
 Enforce total file count limit. Also check others
 More security stuff involving timings I guess? Mainly around async stuff and assuming data is still correct. Maybe delay processing new rooms when the folder is being created for a new room or something
@@ -92,10 +99,11 @@ const startServer = _ => {
 			if (! create) return null;
 			if (state.roomCount == config.limits.max.rooms) return null;
 
-			let roomID = 0;
+			let roomID = -1;
 			{
 				let idUsed;
 				do {
+					roomID++;
 					idUsed = false;
 					for (let i in state.rooms) {
 						if (state.rooms[i].id == roomID) {
@@ -168,7 +176,8 @@ const startServer = _ => {
 				ready: file.ready,
 				uploadProgress: file.ready? 1 : (file.size == 0? 0 : (file.meter.bytes / file.size)),
 				size: file.size,
-				quickDownloadDelete: file.quickDownloadDelete
+				quickDownloadDelete: file.quickDownloadDelete,
+				downloading: file.downloadingCount != 0
 			}))
 		});
 	});
@@ -188,7 +197,12 @@ const startServer = _ => {
 			}
 		}, error => {
 			fileInfo.downloadingCount--;
-			next(error);
+			if (error) { // Give them another chance to download it
+				fileInfo.timeLeft = config.timings.delete.newFile;
+				fileInfo.quickDownloadDelete = false;
+			}
+
+			next();
 		});
 	});
 

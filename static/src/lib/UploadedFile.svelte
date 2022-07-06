@@ -18,6 +18,10 @@
 </script>
 
 <main>
+	<div class="background">
+		<img src={fileIcon} width=24 height=24 alt="A file icon">
+	</div>
+	
 	<div class="top">
 		<div class="piechart">
 			<PieChart amount={
@@ -26,14 +30,14 @@
 				: file.uploadProgress
 			} interpolateTime={config.timings.refreshDelay}></PieChart>
 		</div>
-		<span class:warning={file.ready && file.timeLeft <= 15}>
+		<span class:warning={file.ready && (! file.downloading) && file.timeLeft <= 15}>
 			{file.ready?
-				format.time(file.timeLeft, 2)
+				(file.downloading? "Downloading..." : format.time(file.timeLeft, 2)) // It's paused while it's being downloaded so don't display the time left
 				: `${Math.floor(file.uploadProgress * 100)}% Uploaded`
 			}
 		</span>
-		<button title={file.ready? "Delete file" : "Cancel upload"}>
-			<img src={cancelIcon} alt={file.ready? "Delete file" : "Cancel upload"}>
+		<button title={file.ready? "Delete the file" : "Cancel upload"}>
+			<img src={cancelIcon} width=24 height=24 alt={file.ready? "Delete the file" : "Cancel upload"}>
 		</button>
 	</div>
 
@@ -41,18 +45,14 @@
 		{format.shorten(file.fileName, 30)}
 	</p>
 
-	<div class="background">
-		<img src={fileIcon} alt="A file icon">
-	</div>
-
 	{#if file.ready}
 		<div class="bottom">
-			<button title="Extend file time limit">
-				<img src={extendIcon} alt="Extend file time limit">
+			<button title="Extend the time limit">
+				<img src={extendIcon} width=24 height=24 alt="Extend file time limit">
 			</button>
 	
 			<a href={`/room/get/${roomName}/${index}`} download={file.fileName} title="Download the file">
-				<img src={downloadIcon} alt="Download the file">
+				<img src={downloadIcon} widt=24 height=24 alt="Download the file">
 			</a>
 		</div>
 	{/if}
@@ -62,6 +62,9 @@
 <style>
 	main {
 		position: relative;
+		display: inline-flex;
+		margin-right: 5px;
+		margin-bottom: 5px;
 
 		width: 225px;
 		height: 300px;
