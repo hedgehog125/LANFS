@@ -9,7 +9,7 @@
    id="svg5"
    sodipodi:docname="logo.svg"
    inkscape:version="1.2 (dc2aeda, 2022-05-15)"
-   inkscape:export-filename="../favicon.svg"
+   inkscape:export-filename="../../../../static/favicon.png"
    inkscape:export-xdpi="81.279999"
    inkscape:export-ydpi="81.279999"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -27,9 +27,9 @@
      inkscape:deskcolor="#505050"
      inkscape:document-units="mm"
      showgrid="true"
-     inkscape:zoom="0.5"
-     inkscape:cx="21"
-     inkscape:cy="11"
+     inkscape:zoom="11.313708"
+     inkscape:cx="8.794641"
+     inkscape:cy="17.456699"
      inkscape:window-width="2048"
      inkscape:window-height="1099"
      inkscape:window-x="0"
@@ -90,11 +90,14 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
-    <path
-       id="rect411"
-       style="fill:#3250d2;fill-opacity:1;stroke-width:0.423333"
-       d="M 1.1112501,11.430001 1.6933333,11.43 0.42333332,5.5033332 2.9633335,11.43 H 13.123333 L 15.24,5.5033332 14.393333,11.43 l 0.582084,1e-6 c 0.146125,0 0.264583,0.118458 0.264583,0.264583 v 2.434167 c 0,0.146125 -0.118458,0.264583 -0.264583,0.264583 h -0.582084 v 0.582083 c 0,0.146125 -0.118458,0.264583 -0.264583,0.264583 h -0.317501 c -0.146125,0 -0.264583,-0.118458 -0.264583,-0.264583 V 14.393334 H 2.5400001 v 0.582083 C 2.5399999,15.121542 2.421542,15.24 2.2754168,15.24 h -0.3175 c -0.1461252,0 -0.2645831,-0.118458 -0.2645833,-0.264583 V 14.393334 H 1.1112501 c -0.14612524,0 -0.26458318,-0.118458 -0.26458336,-0.264583 v -2.434167 c 1.8e-7,-0.146125 0.11845812,-0.264583 0.26458336,-0.264583 z"
-       sodipodi:nodetypes="cccccccccccccccccccssscsccc" />
+    <rect
+       style="fill:#202020;stroke-width:0.16;fill-opacity:1"
+       id="rect4744"
+       width="16"
+       height="16"
+       x="0"
+       y="0"
+       ry="2.9633334" />
     <text
        xml:space="preserve"
        id="text686"
@@ -103,29 +106,37 @@
        y="5.9266667"><tspan
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.95111px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';text-align:center;text-anchor:middle;fill:#ffb420;fill-opacity:1;stroke-width:0.423333"
          id="tspan694">LANFS</tspan></text>
-    <rect
-       style="fill:#ffb420;fill-opacity:1;stroke-width:0.423333"
-       id="rect4647"
-       width="0.84666663"
-       height="0.84666663"
-       x="12.7"
-       y="13.123333"
-       ry="0.21166666" />
-    <rect
-       style="fill:#ffb420;fill-opacity:1;stroke-width:0.423333"
-       id="rect4647-5"
-       width="0.84666663"
-       height="0.84666663"
-       x="11.430002"
-       y="13.123335"
-       ry="0.21166666" />
-    <rect
-       style="fill:#ffb420;fill-opacity:1;stroke-width:0.423333"
-       id="rect4647-0"
-       width="0.84666663"
-       height="0.84666663"
-       x="10.16"
-       y="13.123333"
-       ry="0.21166666" />
+    <g
+       id="g4675">
+      <path
+         id="rect411"
+         style="fill:#3250d2;fill-opacity:1;stroke-width:0.423333"
+         d="M 1.1112501,11.430001 1.6933333,11.43 0.42333332,5.5033332 2.9633335,11.43 H 13.123333 L 15.24,5.5033332 14.393333,11.43 l 0.582084,1e-6 c 0.146125,0 0.264583,0.118458 0.264583,0.264583 v 2.434167 c 0,0.146125 -0.118458,0.264583 -0.264583,0.264583 h -0.582084 v 0.582083 c 0,0.146125 -0.118458,0.264583 -0.264583,0.264583 h -0.317501 c -0.146125,0 -0.264583,-0.118458 -0.264583,-0.264583 V 14.393334 H 2.5400001 v 0.582083 C 2.5399999,15.121542 2.421542,15.24 2.2754168,15.24 h -0.3175 c -0.1461252,0 -0.2645831,-0.118458 -0.2645833,-0.264583 V 14.393334 H 1.1112501 c -0.14612524,0 -0.26458318,-0.118458 -0.26458336,-0.264583 v -2.434167 c 1.8e-7,-0.146125 0.11845812,-0.264583 0.26458336,-0.264583 z"
+         sodipodi:nodetypes="cccccccccccccccccccssscsccc" />
+      <rect
+         style="fill:#ffb420;fill-opacity:1;stroke-width:0.423333"
+         id="rect4647"
+         width="0.84666663"
+         height="0.84666663"
+         x="12.7"
+         y="13.123333"
+         ry="0.21166666" />
+      <rect
+         style="fill:#ffb420;fill-opacity:1;stroke-width:0.423333"
+         id="rect4647-5"
+         width="0.84666663"
+         height="0.84666663"
+         x="11.430002"
+         y="13.123335"
+         ry="0.21166666" />
+      <rect
+         style="fill:#ffb420;fill-opacity:1;stroke-width:0.423333;stroke:none;opacity:1"
+         id="rect4647-0"
+         width="0.84666663"
+         height="0.84666663"
+         x="10.16"
+         y="13.123333"
+         ry="0.21166666" />
+    </g>
   </g>
 </svg>
