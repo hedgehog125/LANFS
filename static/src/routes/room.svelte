@@ -1,7 +1,6 @@
 <script>
     import { onMount } from "svelte";
     import { config, getInfo } from "$lib/util/GetServerInfo.js";
-    import { runParallel } from "$lib/util/Tools.js";
     
     import TopBar from "$lib/TopBar.svelte";
     import Popups from "$lib/Popups.svelte";
@@ -94,7 +93,7 @@
             return;
         }
 
-        await runParallel(getInfo, reloadRoom);
+        await Promise.all([getInfo(), reloadRoom()]);
 
         setInterval(reloadRoom, config.timings.refreshDelay * 1000);
     });

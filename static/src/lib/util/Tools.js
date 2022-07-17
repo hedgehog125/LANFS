@@ -1,14 +1,3 @@
-export const runParallel = async (...asyncFns) => {
-	let tasks = [];
-	for (let task of asyncFns) {
-		tasks.push(task());
-	}
-
-	for (let task of tasks) {
-		await task;
-	}
-};
-
 export const format = {
 	time: (total, count) => {
 		let hours = Math.floor(total / (60 * 60));

@@ -1,7 +1,6 @@
 /*
 TODO
 
-Implement file too big handling in UI. Currently runs debugger
 Handle failed fetches
 Use await for when a request can't be completed due to the server cleaning up. It won't be long
 Use a preflight system for the upload. Client sends request to a different URL, with the size of the file. Server sends back a random key and id it'll be at. This id and the space for the file is now reserved, client has 5 seconds to start the main request or everything's ondone and the code is invalid. The upload also fails if the file becomes bigger than what was stated upfront.
@@ -13,8 +12,10 @@ Don't show time while file is downloading, or display a different message
 Enforce total file count limit. Also check others
 More security stuff involving timings I guess? Mainly around async stuff and assuming data is still correct. Maybe delay processing new rooms when the folder is being created for a new room or something
 Proper tab order
+Check the max space in config is available
 
 = Bugs =
+State can desync with files, causing errors
 Error: write EPIPE on download disconnect 
 Client aborting uploads isn't properly handled. The code will be 400 and request.aborted will be true "Error: Request aborted". Or at least sometimes...? Might be a busboy issue
 */
