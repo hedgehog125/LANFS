@@ -3,6 +3,9 @@
 
     export let roomName;
     export let roomData;
+
+    export let handleDelete;
+    export let handleExtend;
 </script>
 
 <main>
@@ -14,7 +17,7 @@
     {:else}
         {#each roomData.files as file, index (index)}
             {#if file != null}
-                <UploadedFile {roomName} {file} {index}></UploadedFile>
+                <UploadedFile {roomName} {file} fileID={index} {index} {handleDelete} {handleExtend}></UploadedFile>
             {/if}
         {/each}
     {/if}

@@ -2,17 +2,18 @@
 TODO
 
 Handle failed fetches
+Handle server errors
 Use await for when a request can't be completed due to the server cleaning up. It won't be long
 Use a preflight system for the upload. Client sends request to a different URL, with the size of the file. Server sends back a random key and id it'll be at. This id and the space for the file is now reserved, client has 5 seconds to start the main request or everything's ondone and the code is invalid. The upload also fails if the file becomes bigger than what was stated upfront.
-Wait the refresh delay in UI to make sure pie chart completes
 Check scaling
-Upload button instead of just drag and drop
-Don't show time while file is downloading, or display a different message
+Preload images
 
 Enforce total file count limit. Also check others
 More security stuff involving timings I guess? Mainly around async stuff and assuming data is still correct. Maybe delay processing new rooms when the folder is being created for a new room or something
 Proper tab order
 Check the max space in config is available
+
+Use maps instead of objects generally. Objects should ideally be used in the same way as in strongly typed languages
 
 = Bugs =
 State can desync with files, causing errors
@@ -342,7 +343,7 @@ const startServer = _ => {
 		req.pipe(fileHandler);
 	});
 
-	app.post("room/delete/:roomName/:fileID", async (req, res) => { // Destructive action, so it doesn't use GET
+	app.post("/room/delete/:roomName/:fileID", async (req, res) => { // Destructive action, so it doesn't use GET
 		let fileID = parseInt(req.params.fileID);
 		const room = await getOrCreateRoom(req.params.roomName, false); // Don't create a new room if none exists
 		const fileInfo = room?.files?.[fileID];
@@ -352,7 +353,7 @@ const startServer = _ => {
 		await deleteUpload(room, fileID);
 	});
 
-	app.post("room/extend/:roomName/:fileID", async (req, res) => { // Does something, so no GET
+	app.post("/room/extend/:roomName/:fileID", async (req, res) => { // Does something, so no GET
 		const room = await getOrCreateRoom(req.params.roomName, false); // Don't create a new room if none exists
 		const fileInfo = room?.files?.[parseInt(req.params.fileID)];
 		if (! checks.fileExistsAndReady(room, fileInfo, res)) return;

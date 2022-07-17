@@ -9,23 +9,33 @@
 
 	const messages = [
 		[
-			"Oh no.",
-			"Looks like that file's too big."
+			"Oh no,",
+			"looks like that file's too big."
+		],
+		[
+			"That's annoying,",
+			"the upload failed due to a connection error."
 		]
+	];
+	messages[99] = [
+		"Huh,",
+		"that's an unknown error."
 	];
 	$: messageLines = messages[popupMessageCode];
 </script>
 
 <main>
-	{#if loading || popupMessageCode != -1}
+	{#if popupMessageCode != -1 || loading}
 		<div>
 			<p>
-				{#if loading}
-					{#if isNetworkError}
-						Connection error. <br>
-						Will continue to retry...
-					{:else}
-						Connecting...
+				{#if popupMessageCode == -1}
+					{#if loading}
+						{#if isNetworkError}
+							Connection error. <br>
+							Will continue to retry...
+						{:else}
+							Connecting...
+						{/if}
 					{/if}
 				{:else}
 					{#each messageLines as line, index}
@@ -34,13 +44,11 @@
 							<br>
 						{/if}
 					{/each}
+					<button type="button" on:click={handlePopupClose} title="Close">
+						<img src={closeIcon} width=24 height=24 alt="Close">
+					</button>
 				{/if}
 			</p>
-			{#if ! loading}
-				<button type="button" on:click={handlePopupClose} title="Close">
-					<img src={closeIcon} width=24 height=24 alt="Close">
-				</button>
-			{/if}
 		</div>
 	{/if}
 </main>
@@ -56,6 +64,7 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
+		z-index: 99;
 
 		--base-margin: min(2.5vw, 22.5vh);
 		margin: var(--base-margin);

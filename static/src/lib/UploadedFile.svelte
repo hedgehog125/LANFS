@@ -14,7 +14,18 @@
 
 	export let roomName;
 	export let file;
+	export let fileID;
 	export let index;
+
+	export let handleDelete;
+	export let handleExtend;
+
+	const handleDeleteInternal = _ => {
+		handleDelete(fileID);
+	};
+	const handleExtendInternal = _ => {
+		handleExtend(fileID);
+	};
 </script>
 
 <main>
@@ -36,7 +47,7 @@
 				: `${Math.floor(file.uploadProgress * 100)}% Uploaded`
 			}
 		</span>
-		<button title={file.ready? "Delete the file" : "Cancel upload"}>
+		<button title={file.ready? "Delete the file" : "Cancel upload"} on:click={handleDeleteInternal}>
 			<img src={cancelIcon} width=24 height=24 alt={file.ready? "Delete the file" : "Cancel upload"}>
 		</button>
 	</div>
@@ -47,7 +58,7 @@
 
 	{#if file.ready}
 		<div class="bottom">
-			<button title="Extend the time limit">
+			<button title="Extend the time limit" on:click={handleExtendInternal}>
 				<img src={extendIcon} width=24 height=24 alt="Extend file time limit">
 			</button>
 	

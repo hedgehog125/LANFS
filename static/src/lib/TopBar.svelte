@@ -1,16 +1,34 @@
 <script>
     import backIcon from "$lib/imgs/back.svg";
+    import uploadIcon from "$lib/imgs/upload.svg";
+
     import { page } from "$app/stores";
 
     const showBack = $page.url.pathname != "/";
+
+    export let handleUpload;
+
+    let uploadElement;
+    const triggerUpload = _ => {
+        uploadElement.click();
+    };
+    const handleUploadInternal = _ => {
+        handleUpload(uploadElement.files);
+    };
 </script>
 
 <main>
     <div class="main">
         {#if showBack}
             <a href="/">
-                <img src={backIcon} alt="Back icon" width=24 height=24>
+                <img src={backIcon} alt="Back" width=24 height=24>
             </a>
+        {/if}
+        {#if handleUpload}
+            <button on:click={triggerUpload}>
+                <img src={uploadIcon} alt="Upload a file" width=24 height=24>
+            </button>
+            <input type="file" multiple bind:this={uploadElement} on:change={handleUploadInternal}/>
         {/if}
         <h1>
             LANFS
@@ -57,5 +75,20 @@
     img {
         width: auto;
         height: 50px;
+
+        display: block;
     }
+
+    input[type="file"] {
+        display: none;
+    }
+    button {
+        position: absolute;
+        right: 0px;
+
+		border: none;
+		background: none;
+
+		padding: 0px;
+	}
 </style>

@@ -1,6 +1,6 @@
 <script>
     import { onMount } from "svelte";
-    import { config, getInfo } from "$lib/util/GetServerInfo.js";
+    import { config, info, getInfo } from "$lib/util/GetServerInfo.js";
     
     import TopBar from "$lib/TopBar.svelte";
     import Popups from "$lib/Popups.svelte";
@@ -14,11 +14,6 @@
     let loading = true;
     let loadingDoneTask;
     let isNetworkError = false;
-
-    let popupMessageCode = -1;
-    const handlePopupClose = _ => {
-        popupMessageCode = -1;
-    };
 
     const reloadRoom = async _ => {
         let start = Date.now();
@@ -49,10 +44,12 @@
             if (loadingDoneTask != null) clearTimeout(loadingDoneTask);
         }
     };
-
     const invalidRoom = _ => {
         location.href = "/";
     };
+
+
+    let uploading = new Map();
     const handleUpload = files => {
         let tooBig = false;
         for (let file of files) {
@@ -60,19 +57,30 @@
                 tooBig = true;
                 continue;
             }
+            let tmpID = roomData.files.length;
 
             let upload = new FormData();
             upload.set("upload", file);
     
-            fetch(`room/upload/${roomName}`, {
+            let abortController = new AbortController();
+            fetch(`/room/upload/${roomName}`, {
                 method: "POST",
-                body: upload
+                body: upload,
+                signal: abortController.signal
+            }).then(_ => {
+                uploading.delete(tmpID);
+
+                // TODO: handle errors given by server
             }).catch(error => {
-                console.log(error.name);
+                uploading.delete(tmpID);
+
+                if (error.name == "AbortSignal") return;
+                popupMessageCode = 1; // This won't always happen, apparently sometimes the browser is able to keep the connection
             });
+            uploading.set(tmpID, abortController);
 
             // While we wait for the refresh, might as well temporarily add the files into the UI
-            roomData.files[roomData.files.length] = {
+            roomData.files[tmpID] = {
                 fileName: file.name,
                 timeLeft: 0, // Not displayed while it's uploading anyway
                 ready: false,
@@ -85,6 +93,37 @@
             popupMessageCode = 0;
         }
     };
+
+    let popupMessageCode = -1;
+    const handlePopupClose = _ => {
+        popupMessageCode = -1;
+    };
+
+    const handleDelete = id => {
+        let roomFile = roomData.files[id];
+
+        if (roomFile.ready) {
+            fetch(`/room/delete/${roomName}/${id}`, {
+                method: "POST"
+            });
+            roomData.files[id] = null;
+        }
+        else {
+            if (uploading.has(id)) {
+                uploading.get(id).abort();
+            }
+        }
+    };
+    const handleExtend = id => {
+        let roomFile = roomData.files[id];
+
+        fetch(`/room/extend/${roomName}/${id}`, {
+            method: "POST"
+        });
+        roomFile.timeLeft = info.timings.delete.newFile;
+        roomData.files[id] = roomFile;
+    };
+
 
     onMount(async _ => { // Load the config and check the room slightly early
         roomName = location.hash.slice(1); // Remove the hashtag
@@ -100,11 +139,11 @@
 </script>
 
 <main>
-    <TopBar></TopBar>
+    <TopBar {handleUpload}></TopBar>
 
     <Popups {isNetworkError} {loading} {popupMessageCode} {handlePopupClose}></Popups>
     {#if ! loading}
-        <FilePool {roomName} {roomData}></FilePool>
+        <FilePool {roomName} {roomData} {handleDelete} {handleExtend}></FilePool>
         <FileUpload {handleUpload}></FileUpload>
     {/if}
 </main>
