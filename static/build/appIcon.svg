@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="10mm" height="10mm" version="1.1" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
 <g>
+<text x="8.0433331" y="5.9266667" fill="#ffb420" font-size="3.9511px" stroke-width=".42333" style="white-space:pre" xml:space="preserve"><tspan fill="#ffb420" font-family="sans-serif" font-size="3.9511px" font-weight="bold" stroke-width=".42333" text-align="center" text-anchor="middle">LANFS</tspan></text>
 <path d="m1.1113 11.43 0.58208-1e-6 -1.27-5.9267 2.54 5.9267h10.16l2.1167-5.9267-0.84667 5.9267 0.58208 1e-6c0.14612 0 0.26458 0.11846 0.26458 0.26458v2.4342c0 0.14612-0.11846 0.26458-0.26458 0.26458h-0.58208v0.58208c0 0.14612-0.11846 0.26458-0.26458 0.26458h-0.3175c-0.14612 0-0.26458-0.11846-0.26458-0.26458v-0.58208h-11.007v0.58208c-2e-7 0.14612-0.11846 0.26458-0.26458 0.26458h-0.3175c-0.14613 0-0.26458-0.11846-0.26458-0.26458v-0.58208h-0.58208c-0.14613 0-0.26458-0.11846-0.26458-0.26458v-2.4342c1.8e-7 -0.14612 0.11846-0.26458 0.26458-0.26458z" fill="#3250d2" stroke-width=".42333"/>
 <g fill="#ffb420">
 <rect x="12.7" y="13.123" width=".84667" height=".84667" ry=".21167" stroke-width=".42333"/>

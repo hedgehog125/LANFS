@@ -7,7 +7,7 @@
    viewBox="0 0 16 16"
    version="1.1"
    id="svg5"
-   sodipodi:docname="logo.svg"
+   sodipodi:docname="maskableAppIcon.svg"
    inkscape:version="1.2 (dc2aeda, 2022-05-15)"
    inkscape:export-filename="../../../../static/favicon.png"
    inkscape:export-xdpi="81.279999"
@@ -28,13 +28,13 @@
      inkscape:document-units="mm"
      showgrid="true"
      inkscape:zoom="11.313708"
-     inkscape:cx="8.794641"
-     inkscape:cy="17.456699"
-     inkscape:window-width="2048"
+     inkscape:cx="25.146486"
+     inkscape:cy="18.428971"
+     inkscape:window-width="1390"
      inkscape:window-height="1099"
-     inkscape:window-x="0"
-     inkscape:window-y="25"
-     inkscape:window-maximized="1"
+     inkscape:window-x="736"
+     inkscape:window-y="29"
+     inkscape:window-maximized="0"
      inkscape:current-layer="layer1">
     <inkscape:grid
        type="xygrid"
@@ -90,14 +90,6 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
-    <rect
-       style="fill:#202020;stroke-width:0.16;fill-opacity:1"
-       id="rect4744"
-       width="16"
-       height="16"
-       x="0"
-       y="0"
-       ry="2.9633334" />
     <text
        xml:space="preserve"
        id="text686"
