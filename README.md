@@ -1,5 +1,5 @@
 # LANFS
-LAN File Sharer. It lets you easily share files over your LAN
+LAN File Sharer. It lets you easily share files over your LAN.
 
 # Introduction
 My inspiration for this project was mainly just so it could be a simpler version of a more complicated project I have planned. But I guess it also makes an occasional task I have to do easier. Before, I would have to host a local HTTP server in a folder, connect to it and find the file within the folder. But now it's something that's already set up on my raspberry pi. Although it's a bit slower due to having to go via it.
