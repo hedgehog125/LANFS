@@ -1,3 +1,2 @@
-pushd $(dirname $0)/server/ > /dev/null
+cd $(dirname $0)/server/
 node index.js & # Run in separate process
-popd > /dev/null
