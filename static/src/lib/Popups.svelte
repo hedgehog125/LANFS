@@ -15,6 +15,18 @@
 		[
 			"That's annoying,",
 			"the upload failed due to a connection error."
+		],
+		[
+			"Welp,",
+			"the server's currently out of rooms."
+		],
+		[
+			"Huh,",
+			"the server's at its total file count limit."
+		],
+		[
+			"Hmm,",
+			"the server currently doesn't have enough space."
 		]
 	];
 	messages[99] = [
@@ -44,9 +56,11 @@
 							<br>
 						{/if}
 					{/each}
-					<button type="button" on:click={handlePopupClose} title="Close">
-						<img src={closeIcon} width=24 height=24 alt="Close">
-					</button>
+					{#if popupMessageCode != 2} <!-- The out of room message can't be closed -->
+						<button type="button" on:click={handlePopupClose} title="Close">
+							<img src={closeIcon} width=24 height=24 alt="Close">
+						</button>
+					{/if}
 				{/if}
 			</p>
 		</div>

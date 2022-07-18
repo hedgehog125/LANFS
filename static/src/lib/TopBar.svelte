@@ -7,10 +7,11 @@
     const showBack = $page.url.pathname != "/";
 
     export let handleUpload;
+    export let enableUpload;
 
     let uploadElement;
     const triggerUpload = _ => {
-        uploadElement.click();
+        if (enableUpload) uploadElement.click();
     };
     const handleUploadInternal = _ => {
         handleUpload(uploadElement.files);

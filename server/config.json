@@ -11,7 +11,7 @@
             "cleaningUp": 0.5,
             "maxRoomsReached": 10,
             "fileNotReady": 1,
-            "tooManyFiles": 30
+            "tooManyFiles": 5
         }
     },
     "limits": {
@@ -34,6 +34,6 @@
         "unusual": true
     },
     "serve": {
-        "gzip": false
+        "gzip": true
     }
 }

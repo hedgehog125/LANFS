@@ -16,6 +16,8 @@
     let isNetworkError = false;
 
     const reloadRoom = async _ => {
+        if (popupMessageCode == 2) return; // At max room count
+
         let start = Date.now();
         try {
             let res = await fetch(`/room/get/${roomName}`);
@@ -25,6 +27,14 @@
             else {
                 roomData = null;
                 isNetworkError = false;
+
+                let error = await res.text();
+                if (error == "NoRooms") {
+                    popupMessageCode = 2;
+                }
+                else {
+                    popupMessageCode = 99;
+                }
             }
         }
         catch {
@@ -51,6 +61,8 @@
 
     let uploading = new Map();
     const handleUpload = files => {
+        if (loading) return;
+
         let tooBig = false;
         for (let file of files) {
             if (file.size > config.max.fileSize) {
@@ -67,10 +79,23 @@
                 method: "POST",
                 body: upload,
                 signal: abortController.signal
-            }).then(_ => {
+            }).then(async res => {
                 uploading.delete(tmpID);
 
-                // TODO: handle errors given by server
+                if (res.ok) return;
+                let error = await res.text();
+                if (error == "FileTooBig") {
+                    popupMessageCode = 0;
+                }
+                else if (error == "TooManyFiles") {
+                    popupMessageCode = 3;
+                }
+                else if (error == "NoSpace") {
+                    popupMessageCode = 4;
+                }
+                else {
+                    popupMessageCode = 99;
+                }
             }).catch(error => {
                 uploading.delete(tmpID);
 
@@ -139,11 +164,11 @@
 </script>
 
 <main>
-    <TopBar {handleUpload}></TopBar>
+    <TopBar {handleUpload} enableUpload={! loading}></TopBar>
 
     <Popups {isNetworkError} {loading} {popupMessageCode} {handlePopupClose}></Popups>
     {#if ! loading}
         <FilePool {roomName} {roomData} {handleDelete} {handleExtend}></FilePool>
-        <FileUpload {handleUpload}></FileUpload>
     {/if}
+    <FileUpload {handleUpload}></FileUpload> <!-- This is always active to prevent accidental downloads when trying to upload a file too soon. But those uploads will be ignored -->
 </main>

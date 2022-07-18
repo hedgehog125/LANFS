@@ -1,14 +1,11 @@
 /*
 TODO
 
-Handle failed fetches
-Handle server errors
 Use await for when a request can't be completed due to the server cleaning up. It won't be long
 Use a preflight system for the upload. Client sends request to a different URL, with the size of the file. Server sends back a random key and id it'll be at. This id and the space for the file is now reserved, client has 5 seconds to start the main request or everything's ondone and the code is invalid. The upload also fails if the file becomes bigger than what was stated upfront.
 Check scaling
 Preload images
 
-Enforce total file count limit. Also check others
 More security stuff involving timings I guess? Mainly around async stuff and assuming data is still correct. Maybe delay processing new rooms when the folder is being created for a new room or something
 Proper tab order
 Check the max space in config is available
@@ -47,6 +44,7 @@ const state = {
 	rooms: {},
 	roomCount: 0,
 	totalSize: 0,
+	totalFileCount: 0,
 
 	cleaningUp: false
 };
@@ -64,6 +62,7 @@ const deleteUpload = async (room, fileID) => {
 	}
 	
 	room.fileCount--;
+	state.totalFileCount--;
 	state.totalSize -= fileInfo.size; // A guess is still known even if the upload immediately fails so no metadata
 	if (room.fileCount == 0) {
 		room.files = [];
@@ -158,12 +157,12 @@ const startServer = _ => {
 				res.status(503).send("StillProcessing");
 				return false;
 			}
-			return true
+			return true;
 		},
 		underRoomLimit: (room, res) => {
 			if (room == null) { // Reached room limit
 				res.setHeader("Retry-After", config.timings.clientRelated.maxRoomsReached);
-				res.status(503).send("RoomLimitReached");
+				res.status(503).send("NoRooms");
 				return false;
 			}
 			return true;
@@ -218,10 +217,16 @@ const startServer = _ => {
 			return;
 		}
 
+		const max = config.limits.max;
+		if (state.totalFileCount == max.totalFileCount) {
+			res.setHeader("Retry-After", config.timings.clientRelated.tooManyFiles);
+			res.status(503).send("TooManyFiles");
+			return;
+		}
+
 		const room = await getOrCreateRoom(req.params.roomName);
 		if (! checks.underRoomLimit(room, res)) return;
 
-		const max = config.limits.max;
 		let spaceLeft = max.totalFileSize - state.totalSize;
 		let maxFilesize = max.fileSize == -1? spaceLeft : Math.min(max.fileSize, spaceLeft);
 
@@ -229,7 +234,7 @@ const startServer = _ => {
 		if (fileSize - max.expectedUploadOverhead > maxFilesize) { // Stop the request early if it'll be too big
 			if (max.fileSize == -1 || spaceLeft < max.fileSize) { // More-so the server's fault
 				res.setHeader("Retry-After", config.timings.clientRelated.tooManyFiles);
-				res.status(503).send("TooManyFiles");
+				res.status(503).send("NoSpace");
 			}
 			else {
 				res.status(413).send("FileTooBig");
@@ -277,6 +282,7 @@ const startServer = _ => {
 			quickDownloadDelete: false // If the file is using the shorter time because it's been downloaded
 		};
 		room.fileCount++;
+		state.totalFileCount++;
 
 		const roomFileInfo = room.files[id];
 		const m = roomFileInfo.meter;
