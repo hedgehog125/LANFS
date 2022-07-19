@@ -1,18 +1,15 @@
 /*
 TODO
 
-Use await for when a request can't be completed due to the server cleaning up. It won't be long
 Use a preflight system for the upload. Client sends request to a different URL, with the size of the file. Server sends back a random key and id it'll be at. This id and the space for the file is now reserved, client has 5 seconds to start the main request or everything's ondone and the code is invalid. The upload also fails if the file becomes bigger than what was stated upfront.
 Check scaling
-Preload images
 
 More security stuff involving timings I guess? Mainly around async stuff and assuming data is still correct. Maybe delay processing new rooms when the folder is being created for a new room or something
-Proper tab order
-Check the max space in config is available
 
 Use maps instead of objects generally. Objects should ideally be used in the same way as in strongly typed languages
 
 = Bugs =
+Probably not my fault:
 State can desync with files, causing errors
 Error: write EPIPE on download disconnect 
 Client aborting uploads isn't properly handled. The code will be 400 and request.aborted will be true "Error: Request aborted". Or at least sometimes...? Might be a busboy issue
@@ -20,6 +17,7 @@ Client aborting uploads isn't properly handled. The code will be 400 and request
 
 
 const GB_TO_BYTES = Math.pow(1024, 3);
+const BYTES_TO_GB = 1 / GB_TO_BYTES;
 
 const fs = require("fs/promises");
 const oldFS = require("fs");
@@ -28,6 +26,7 @@ const busboy = require("busboy");
 const mime = require("mime-types");
 const meter = require("stream-meter");
 const serveCompressed = require("express-precompressed");
+const getDiskSpace = require("check-disk-space").default;
 
 const ipPackage = require("ip");
 const IP = ipPackage.address();
@@ -46,7 +45,10 @@ const state = {
 	totalSize: 0,
 	totalFileCount: 0,
 
-	cleaningUp: false
+	tasks: {
+		cleaningUp: null,
+		loadConfig: null
+	}
 };
 let config; // It'll be loaded from the disk
 let PORT; // Loaded as part of config or from the environment variable
@@ -83,10 +85,29 @@ const loadConfig = async _ => {
 	PORT = process.env.PORT?? config.port;
 };
 
-const cleanUp = async _ => {
-	state.cleaningUp = true;
-	await helper.clearDir("sharedFiles", fs, path);
-	state.cleaningUp = false;
+const checkDiskSpace = async _ => {
+	let info = await getDiskSpace(__dirname);
+	await state.tasks.loadConfig;
+
+	let maxSpace = config.limits.max.totalFileSize - state.totalSize;
+	let notEnoughSpace = maxSpace > info.free;
+
+	if (notEnoughSpace) {
+		const message = `
+The amount of space left on this computer is less than the maximum total uploads can take up. You might want to reduce the maximum or free up some space.
+${maxSpace * BYTES_TO_GB}GB is expected but there's only ${info.free * BYTES_TO_GB} available.
+`;
+		if (config.require.diskSpaceMoreThanLimit) {
+			throw new Error(message);
+		}
+		else if (config.log.diskSpaceLessThanLimit) {
+			console.warn(message);
+		}
+	}
+};
+
+const cleanUp = _ => {
+	state.tasks.cleaningUp = helper.clearDir("sharedFiles", fs, path);
 };
 
 const startServer = _ => {
@@ -211,11 +232,7 @@ const startServer = _ => {
 	});
 
 	app.post("/room/upload/:roomName/", async (req, res) => {
-		if (state.cleaningUp) {
-			res.setHeader("Retry-After", config.timings.clientRelated.cleaningUp);
-			res.status(503).send("CleaningUp");
-			return;
-		}
+		await state.tasks.cleaningUp;
 
 		const max = config.limits.max;
 		if (state.totalFileCount == max.totalFileCount) {
@@ -227,8 +244,8 @@ const startServer = _ => {
 		const room = await getOrCreateRoom(req.params.roomName);
 		if (! checks.underRoomLimit(room, res)) return;
 
-		let spaceLeft = max.totalFileSize - state.totalSize;
-		let maxFilesize = max.fileSize == -1? spaceLeft : Math.min(max.fileSize, spaceLeft);
+		const spaceLeft = max.totalFileSize - state.totalSize;
+		const maxFilesize = max.fileSize == -1? spaceLeft : Math.min(max.fileSize, spaceLeft);
 
 		let fileSize = parseInt(req.headers["content-length"]); // Not completely accurate due to overhead but will be reduced once the length is known
 		if (fileSize - max.expectedUploadOverhead > maxFilesize) { // Stop the request early if it'll be too big
@@ -306,7 +323,7 @@ const startServer = _ => {
 			deleteUpload(room, id);
 			res.end();
 
-			if (config.log.unusual) {
+			if (config.log.uploadErrors) {
 				if (stream) {
 					console.log("File upload failed due to client disconnecting.");
 				}
@@ -449,7 +466,8 @@ const main = _ => {
 };
 
 const start = async _ => {
-	await loadConfig();
+	state.tasks.loadConfig = loadConfig();
+	await Promise.all([state.tasks.loadConfig, checkDiskSpace()]);
 
 	cleanUp();
 	startServer();

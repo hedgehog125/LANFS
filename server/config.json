@@ -8,7 +8,6 @@
             "downloadedFile": 10
         },
         "clientRelated": {
-            "cleaningUp": 0.5,
             "maxRoomsReached": 10,
             "fileNotReady": 1,
             "tooManyFiles": 5
@@ -31,9 +30,13 @@
     },
 
     "log": {
-        "unusual": true
+        "uploadErrors": true,
+        "diskSpaceLessThanLimit": true
+    },
+    "require": {
+        "diskSpaceMoreThanLimit": false
     },
     "serve": {
-        "gzip": false
+        "gzip": true
     }
 }

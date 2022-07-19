@@ -1,3 +1,15 @@
+=== Code ===
+== Packages and tools ==
+busboy (https://www.npmjs.com/package/busboy)
+check-disk-space (https://www.npmjs.com/package/check-disk-space)
+express: (https://www.npmjs.com/package/express)
+ip: (https://www.npmjs.com/package/ip)
+mime-types: (https://www.npmjs.com/package/mime-types)
+node-gzip: (https://www.npmjs.com/package/node-gzip)
+stream-meter: (https://www.npmjs.com/package/stream-meter)
+Sveltekit (https://kit.svelte.dev/)
+
+=== Images ===
 == Key ==
 Material Icons:
 https://materialdesignicons.com/
