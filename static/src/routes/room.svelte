@@ -1,6 +1,20 @@
 <script>
     import { onMount } from "svelte";
     import { config, info, getInfo } from "$lib/util/GetServerInfo.js";
+
+    import Preload from "$lib/util/Preload.svelte";
+    import downloadIcon from "$lib/imgs/download.svg";
+	import cancelIcon from "$lib/imgs/close.svg";
+	import extendIcon from "$lib/imgs/timer-plus.svg";
+	import fileIcon from "$lib/imgs/file-document-outline.svg";
+    const assetsToPreload = {
+        image: [
+            downloadIcon,
+            cancelIcon,
+            extendIcon,
+            fileIcon
+        ]
+    };
     
     import TopBar from "$lib/TopBar.svelte";
     import Popups from "$lib/Popups.svelte";
@@ -162,6 +176,10 @@
         setInterval(reloadRoom, config.timings.refreshDelay * 1000);
     });
 </script>
+
+<svelte:head>
+    <Preload {assetsToPreload}></Preload>
+</svelte:head>
 
 <main>
     <TopBar {handleUpload} enableUpload={! loading}></TopBar>
