@@ -4,7 +4,9 @@ LAN File Sharer. It lets you easily share files over your LAN.
 Because it would be really insecure and a nightmare to maintain, there's no online version of this. If you just want to see it in action though, I made a [demo video](https://youtu.be/qGhvlKtixlc).
 
 # Introduction
-My inspiration for this project was mainly just so it could be a simpler version of a more complicated project I have planned. But I guess it also makes an occasional task I have to do easier. Before, I would have to host a local HTTP server in a folder, connect to it and find the file within the folder. But now it's something that's already set up on my raspberry pi. Although it's a bit slower due to having to go via it.
+LANFS stands for LAN File Sharer, and is a web app for easily sharing files over your LAN. I made it using SvelteKit (a new metaframework) for the frontend and Express (a Node.js server framework) for the backend.
+
+I made it as a proof of concept for another more complicated project and also to make the occasional task I have of transferring large files easier. Previously I would have to run a HTTP server every time and connect to it, which was rather annoying.
 
 # Installation
 Clone or download the repository and install Node.js (and npm) 16.16 or later. Some older versions will probably work, but I haven't tested them.
