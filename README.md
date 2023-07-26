@@ -9,12 +9,14 @@ LANFS stands for LAN File Sharer, and is a web app for easily sharing files over
 I made it as a proof of concept for another more complicated project and also to make the occasional task I have of transferring large files easier. Previously I would have to run a HTTP server every time and connect to it, which was rather annoying.
 
 # Installation
-Clone or download the repository and install Node.js (and npm) 16.16 or later. Some older versions will probably work, but I haven't tested them.
+Install [Node.js (and npm)](https://nodejs.org/en/download) 16.16 or later. Some older versions will probably work, but I haven't tested them.
 
-You can run the server just by running `npm install` and `node index.js` once you're in the "server" folder. But I'd recommend setting up a few things...
+Then [download a release](https://github.com/hedgehog125/LANFS/releases), extract it and open a terminal inside its "server" folder. Then run `npm install` for the initial setup and `node index.js` to start it.
+
+It should work now, but I'd recommend setting up a few things if you want to use it more permanently...
 
 <br>
-These 2 steps are for Raspberry Pi OS, but might work on other Linux distros. I'd suggest doing this over SSH as it'll make copying and pasint easier (you may need to enable it in the PI's settings).
+These 2 steps are for Raspberry Pi OS, but might work on other Linux distros. I'd suggest doing this over SSH as it'll make copying and pasting easier (you may need to enable it in the Pi's settings).
 
 ## Optional: Configuring a static IP
 Before you start, make a quick copy of the current config with `sudo cp /etc/dhcpcd.conf ~/Documents/dhcpcd-backup.conf`
